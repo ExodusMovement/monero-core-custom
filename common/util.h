@@ -39,11 +39,3 @@
 #include <functional>
 #include <memory>
 #include <string>
-
-
-namespace tools
-{
-    void set_max_concurrency(unsigned n);
-  unsigned get_max_concurrency();
-
-}

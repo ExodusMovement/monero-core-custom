@@ -29,11 +29,8 @@
 // Adapted from Java code by Sarang Noether
 
 #include <stdlib.h>
-// #include <openssl/ssl.h>
-// #include <openssl/bn.h>
 #include <boost/thread/mutex.hpp>
 #include "misc_log_ex.h"
-// #include "common/perf_timer.h"
 #include "cryptonote_config.h"
 extern "C"
 {
@@ -354,39 +351,6 @@ static rct::key switch_endianness(rct::key k)
   return k;
 }
 
-// /* Compute the inverse of a scalar, the stupid way */
-// static rct::key invert(const rct::key &x)
-// {
-//   rct::key inv;
-
-//   BN_CTX *ctx = BN_CTX_new();
-//   BIGNUM *X = BN_new();
-//   BIGNUM *L = BN_new();
-//   BIGNUM *I = BN_new();
-
-//   BN_bin2bn(switch_endianness(x).bytes, sizeof(rct::key), X);
-//   BN_bin2bn(switch_endianness(rct::curveOrder()).bytes, sizeof(rct::key), L);
-
-//   CHECK_AND_ASSERT_THROW_MES(BN_mod_inverse(I, X, L, ctx), "Failed to invert");
-
-//   const int len = BN_num_bytes(I);
-//   CHECK_AND_ASSERT_THROW_MES((size_t)len <= sizeof(rct::key), "Invalid number length");
-//   inv = rct::zero();
-//   BN_bn2bin(I, inv.bytes);
-//   std::reverse(inv.bytes, inv.bytes + len);
-
-//   BN_free(I);
-//   BN_free(L);
-//   BN_free(X);
-//   BN_CTX_free(ctx);
-
-// #ifdef DEBUG_BP
-//   rct::key tmp;
-//   sc_mul(tmp.bytes, inv.bytes, x.bytes);
-//   CHECK_AND_ASSERT_THROW_MES(tmp == rct::identity(), "invert failed");
-// #endif
-//   return inv;
-// }
 /* Compute the inverse of a scalar, the naive way - this come's from moneromooo's branch, to remove openssl dep */
 static rct::key invert(const rct::key &x)
 {

@@ -40,8 +40,6 @@ namespace epee
     ~mlocker();
 
     static size_t get_page_size();
-    static size_t get_num_locked_pages();
-    static size_t get_num_locked_objects();
 
     static void lock(void *ptr, size_t len);
     static void unlock(void *ptr, size_t len);
@@ -52,8 +50,6 @@ namespace epee
 
     static boost::mutex &mutex();
     static std::map<size_t, unsigned int> &map();
-    static void lock_page(size_t page);
-    static void unlock_page(size_t page);
 
     void *ptr;
     size_t len;
