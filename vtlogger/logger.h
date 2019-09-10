@@ -29,7 +29,6 @@
 
 #pragma once
 
-#include <atomic>
 #include <ostream>
 #include <type_traits>
 
@@ -47,17 +46,7 @@ constexpr bool is_by_value_cheap() noexcept {
     return is_cheap_copy<T>() && sizeof(T) <= sizeof(void*);
 }
 
-/*! A basic and fast logging implementation. Disables C++ I/O stream
-    synchronization with C counterparts, and initializes a signal handler for
-    SIGUSR1 to toggle debug logging. So be aware of the consequences of each if
-    using this implementation.
-
-    \note `init` must be called before any logging occurs, or the provided log
-        level will be ignored. */
 class logger {
-    static std::atomic<unsigned> current_level_;
-
-    static void do_init();
 public:
     /* String literals are converted to a pointer, and cheap to copy types are
        taken by value. Otherwise, the value is taken by const reference. */
@@ -76,9 +65,6 @@ public:
         kError      //<! Always write directly to std::cerr without buffering
     };
 
-    //! Initialize the logging system, writing only messages at `base_level`.
-    static void init(level base_level);
-
     //! Specific argument(s) for a log message (empty case)
     template<typename... T>
     class format {
@@ -86,7 +72,6 @@ public:
         constexpr format() noexcept = default;
         constexpr format(const format&) noexcept = default;
         format& operator=(const format&) = delete;
-
         void write(std::ostream&) const noexcept {}
     };
 
@@ -108,10 +93,7 @@ public:
         constexpr format(const format&) noexcept = default;
         format& operator=(const format&) = delete;
 
-        //! Writes base class to `out`, then `arg` to `out`.
         void write(std::ostream& out) const {
-            format<Tail...>::write(out);
-            out << arg_;
         }
     };
 
@@ -126,56 +108,10 @@ public:
         "unlikely to be passed via registers"
     );
     static_assert(is_cheap_copy<info>(), "info needs to be cheap to copy");
-
-    //! Log `args` from `src` if it meets or exceeds current log level.
-    template<typename... T>
-    static bool log(const info& src, const format<T...>& args) {
-        if (current_level_ <= unsigned(src.level_)) {
-            static_assert(
-                is_cheap_copy<format<T...>>(),
-                "format arguments should be cheap to copy"
-            );
-            static_assert(
-                std::is_trivially_destructible<formatter<T...>>(),
-                "unexpected destructor call required for formatter"
-            );
-            return formatter<T...>{args}.log(src);
-        }
-        return true;
-   }
-
-private:
-    //! Provides type-erasure for logging arguments.
-    class formatter_base {
-       virtual void do_log(std::ostream& out) const = 0;
-    public:
-       formatter_base() noexcept = default;
-       formatter_base(const formatter_base&) = delete;
-       formatter_base& operator=(const formatter_base&) = delete;
-
-       bool log(const info src) const;
-    };
-
-    //! Type-erased log arguments
-    template<typename... T>
-    class formatter final : public formatter_base {
-        const format<T...> args_;
-
-        virtual void do_log(std::ostream& out) const override final {
-            args_.write(out);
-        }
-
-    public:
-        explicit formatter(const format<T...>& args) noexcept : args_(args) {}
-
-        formatter(const formatter&) = delete;
-        formatter& operator=(const formatter&) = delete;
-    };
 };
 
 template<typename... T>
 void operator&(const logger::info& info, const logger::format<T...>& args) {
-    logger::log(info, args);
 }
 
 template<typename... Tail, typename Head>
