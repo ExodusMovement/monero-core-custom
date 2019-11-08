@@ -1,11 +1,5 @@
 #!/usr/bin/env sh
 
-# changes
-# removed vtlogger (it got replaced by easylogging++)
-
-# aliases
-# epee -> contrib/epee
-
 upstream=/Users/sekhmet/Workspace/monero-cpp
 
 prepare_v0_15_0_0() {
