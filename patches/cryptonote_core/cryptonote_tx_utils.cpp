@@ -667,7 +667,7 @@ namespace cryptonote
     //   return cryptonote::get_block_longhash(NULL, b, hash, height, threads);
     // }, bl, 1, 0);
     // bl.invalidate_hashes();
-    // return true;
+    return true;
   }
   //---------------------------------------------------------------
 //   void get_altblock_longhash(const block& b, crypto::hash& res, const uint64_t main_height, const uint64_t height, const uint64_t seed_height, const crypto::hash& seed_hash)
