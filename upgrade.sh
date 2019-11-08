@@ -64,7 +64,7 @@ list_identical() {
     done
 }
 
-patch() {
+upgrade() {
     for f in $(find . -name '*.c' -or -name '*.cc' -or -name '*.cpp' -or -name '*.h' -or -name '*.hpp'); do
         upstream_file=$upstream/src/$f
 
@@ -89,13 +89,13 @@ patch() {
     done
 }
 
-fix() {
+patch() {
     cp -R patches/* .
 }
 
-patch_and_fix() {
+upgrade_and_patch() {
+    upgrade
     patch
-    fix
 }
 
 "$@"

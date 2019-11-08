@@ -24,5 +24,5 @@ Patches folder should contain desired version of upstream files but with patches
 #### Upgrade
 
 ```sh
-./upgrade.sh patch_and_fix
+./upgrade.sh upgrade_and_patch
 ```
