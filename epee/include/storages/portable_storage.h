@@ -32,6 +32,7 @@
 #include "portable_storage_base.h"
 #include "portable_storage_to_bin.h"
 #include "portable_storage_from_bin.h"
+#include "portable_storage_from_json.h"
 #include "portable_storage_val_converters.h"
 
 namespace epee
@@ -79,6 +80,7 @@ namespace epee
       //-------------------------------------------------------------------------------
       bool		store_to_binary(binarybuffer& target);
       bool		load_from_binary(const binarybuffer& target);
+      bool		  load_from_json(const std::string& source);
 
     private:
       section m_root;
@@ -99,6 +101,13 @@ namespace epee
       };
 #pragma pack(pop)
     };
+    inline
+    bool portable_storage::load_from_json(const std::string& source)
+    {
+      TRY_ENTRY();
+      return json::load_from_json(source, *this);
+      CATCH_ENTRY("portable_storage::load_from_json", false)
+    }
 
     inline
     bool portable_storage::store_to_binary(binarybuffer& target)
