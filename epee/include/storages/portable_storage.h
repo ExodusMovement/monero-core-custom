@@ -32,7 +32,6 @@
 #include "portable_storage_base.h"
 #include "portable_storage_to_bin.h"
 #include "portable_storage_from_bin.h"
-#include "portable_storage_to_json.h"
 #include "portable_storage_from_json.h"
 #include "portable_storage_val_converters.h"
 
@@ -81,9 +80,6 @@ namespace epee
       //-------------------------------------------------------------------------------
       bool		store_to_binary(binarybuffer& target);
       bool		load_from_binary(const binarybuffer& target);
-      template<class trace_policy>
-      bool		  dump_as_xml(std::string& targetObj, const std::string& root_name = "");
-      bool		  dump_as_json(std::string& targetObj, size_t indent = 0, bool insert_newlines = true);
       bool		  load_from_json(const std::string& source);
 
     private:
@@ -106,27 +102,11 @@ namespace epee
 #pragma pack(pop)
     };
     inline
-    bool portable_storage::dump_as_json(std::string& buff, size_t indent, bool insert_newlines)
-    {
-      TRY_ENTRY();
-      std::stringstream ss;
-      epee::serialization::dump_as_json(ss, m_root, indent, insert_newlines);
-      buff = ss.str();
-      return true;
-      CATCH_ENTRY("portable_storage::dump_as_json", false)
-    }
-    inline
     bool portable_storage::load_from_json(const std::string& source)
     {
       TRY_ENTRY();
       return json::load_from_json(source, *this);
       CATCH_ENTRY("portable_storage::load_from_json", false)
-    }
-
-    template<class trace_policy>
-    bool portable_storage::dump_as_xml(std::string& targetObj, const std::string& root_name)
-    {
-      return false;//TODO: don't think i ever again will use xml - ambiguous and "overtagged" format
     }
 
     inline

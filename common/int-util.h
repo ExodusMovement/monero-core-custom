@@ -129,8 +129,6 @@ static inline uint32_t div128_32(uint64_t dividend_hi, uint64_t dividend_lo, uin
   return remainder;
 }
 
-void div128_64(uint64_t dividend_hi, uint64_t dividend_lo, uint64_t divisor, uint64_t* quotient_hi, uint64_t *quotient_lo, uint64_t *remainder_hi, uint64_t *remainder_lo);
-
 #define IDENT32(x) ((uint32_t) (x))
 #define IDENT64(x) ((uint64_t) (x))
 
