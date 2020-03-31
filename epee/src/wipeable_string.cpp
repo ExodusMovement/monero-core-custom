@@ -27,6 +27,7 @@
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <boost/optional/optional.hpp>
+#include <memory>
 #include <string.h>
 #include "memwipe.h"
 #include "misc_log_ex.h"
