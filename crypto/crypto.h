@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2018, The Monero Project
+// Copyright (c) 2014-2020, The Monero Project
 // 
 // All rights reserved.
 // 
@@ -32,14 +32,12 @@
 
 #include <cstddef>
 #include <iostream>
-#include <boost/thread/mutex.hpp>
-#include <boost/thread/lock_guard.hpp>
 #include <boost/optional.hpp>
 #include <type_traits>
 #include <vector>
+#include <random>
 
 #include "common/pod-class.h"
-#include "common/util.h"
 #include "memwipe.h"
 #include "mlocker.h"
 #include "generic-ops.h"
@@ -128,15 +126,30 @@ namespace crypto {
     friend void derive_secret_key(const key_derivation &, std::size_t, const secret_key &, secret_key &);
     static bool derive_subaddress_public_key(const public_key &, const key_derivation &, std::size_t, public_key &);
     friend bool derive_subaddress_public_key(const public_key &, const key_derivation &, std::size_t, public_key &);
+    static void generate_signature(const hash &, const public_key &, const secret_key &, signature &);
+    friend void generate_signature(const hash &, const public_key &, const secret_key &, signature &);
+    static bool check_signature(const hash &, const public_key &, const signature &);
+    friend bool check_signature(const hash &, const public_key &, const signature &);
+    static void generate_tx_proof(const hash &, const public_key &, const public_key &, const boost::optional<public_key> &, const public_key &, const secret_key &, signature &);
+    friend void generate_tx_proof(const hash &, const public_key &, const public_key &, const boost::optional<public_key> &, const public_key &, const secret_key &, signature &);
+    static void generate_tx_proof_v1(const hash &, const public_key &, const public_key &, const boost::optional<public_key> &, const public_key &, const secret_key &, signature &);
+    friend void generate_tx_proof_v1(const hash &, const public_key &, const public_key &, const boost::optional<public_key> &, const public_key &, const secret_key &, signature &);
+    static bool check_tx_proof(const hash &, const public_key &, const public_key &, const boost::optional<public_key> &, const public_key &, const signature &, const int);
+    friend bool check_tx_proof(const hash &, const public_key &, const public_key &, const boost::optional<public_key> &, const public_key &, const signature &, const int);
     static void generate_key_image(const public_key &, const secret_key &, key_image &);
     friend void generate_key_image(const public_key &, const secret_key &, key_image &);
     static void generate_ring_signature(const hash &, const key_image &,
       const public_key *const *, std::size_t, const secret_key &, std::size_t, signature *);
     friend void generate_ring_signature(const hash &, const key_image &,
       const public_key *const *, std::size_t, const secret_key &, std::size_t, signature *);
+    static bool check_ring_signature(const hash &, const key_image &,
+      const public_key *const *, std::size_t, const signature *);
+    friend bool check_ring_signature(const hash &, const key_image &,
+      const public_key *const *, std::size_t, const signature *);
   };
 
   void generate_random_bytes_thread_safe(size_t N, uint8_t *bytes);
+  void add_extra_entropy_thread_safe(const void *ptr, size_t bytes);
 
   /* Generate N random bytes
    */
@@ -151,6 +164,32 @@ namespace crypto {
     typename std::remove_cv<T>::type res;
     generate_random_bytes_thread_safe(sizeof(T), (uint8_t*)&res);
     return res;
+  }
+
+  /* UniformRandomBitGenerator using crypto::rand<uint64_t>()
+   */
+  struct random_device
+  {
+    typedef uint64_t result_type;
+    static constexpr result_type min() { return 0; }
+    static constexpr result_type max() { return result_type(-1); }
+    result_type operator()() const { return crypto::rand<result_type>(); }
+  };
+
+  /* Generate a random value between range_min and range_max
+   */
+  template<typename T>
+  typename std::enable_if<std::is_integral<T>::value, T>::type rand_range(T range_min, T range_max) {
+    crypto::random_device rd;
+    std::uniform_int_distribution<T> dis(range_min, range_max);
+    return dis(rd);
+  }
+
+  /* Generate a random index between 0 and sz-1
+   */
+  template<typename T>
+  typename std::enable_if<std::is_unsigned<T>::value, T>::type rand_idx(T sz) {
+    return crypto::rand_range<T>(0, sz-1);
   }
 
   /* Generate a new key pair
@@ -195,6 +234,29 @@ namespace crypto {
     return crypto_ops::derive_subaddress_public_key(out_key, derivation, output_index, result);
   }
 
+  /* Generation and checking of a standard signature.
+   */
+  inline void generate_signature(const hash &prefix_hash, const public_key &pub, const secret_key &sec, signature &sig) {
+    crypto_ops::generate_signature(prefix_hash, pub, sec, sig);
+  }
+  inline bool check_signature(const hash &prefix_hash, const public_key &pub, const signature &sig) {
+    return crypto_ops::check_signature(prefix_hash, pub, sig);
+  }
+
+  /* Generation and checking of a tx proof; given a tx pubkey R, the recipient's view pubkey A, and the key 
+   * derivation D, the signature proves the knowledge of the tx secret key r such that R=r*G and D=r*A
+   * When the recipient's address is a subaddress, the tx pubkey R is defined as R=r*B where B is the recipient's spend pubkey
+   */
+  inline void generate_tx_proof(const hash &prefix_hash, const public_key &R, const public_key &A, const boost::optional<public_key> &B, const public_key &D, const secret_key &r, signature &sig) {
+    crypto_ops::generate_tx_proof(prefix_hash, R, A, B, D, r, sig);
+  }
+  inline void generate_tx_proof_v1(const hash &prefix_hash, const public_key &R, const public_key &A, const boost::optional<public_key> &B, const public_key &D, const secret_key &r, signature &sig) {
+    crypto_ops::generate_tx_proof_v1(prefix_hash, R, A, B, D, r, sig);
+  }
+  inline bool check_tx_proof(const hash &prefix_hash, const public_key &R, const public_key &A, const boost::optional<public_key> &B, const public_key &D, const signature &sig, const int version) {
+    return crypto_ops::check_tx_proof(prefix_hash, R, A, B, D, sig, version);
+  }
+
   /* To send money to a key:
    * * The sender generates an ephemeral key and includes it in transaction output.
    * * To spend the money, the receiver generates a key image from it.
@@ -210,6 +272,11 @@ namespace crypto {
     signature *sig) {
     crypto_ops::generate_ring_signature(prefix_hash, image, pubs, pubs_count, sec, sec_index, sig);
   }
+  inline bool check_ring_signature(const hash &prefix_hash, const key_image &image,
+    const public_key *const *pubs, std::size_t pubs_count,
+    const signature *sig) {
+    return crypto_ops::check_ring_signature(prefix_hash, image, pubs, pubs_count, sig);
+  }
 
   /* Variants with vector<const public_key *> parameters.
    */
@@ -218,6 +285,11 @@ namespace crypto {
     const secret_key &sec, std::size_t sec_index,
     signature *sig) {
     generate_ring_signature(prefix_hash, image, pubs.data(), pubs.size(), sec, sec_index, sig);
+  }
+  inline bool check_ring_signature(const hash &prefix_hash, const key_image &image,
+    const std::vector<const public_key *> &pubs,
+    const signature *sig) {
+    return check_ring_signature(prefix_hash, image, pubs.data(), pubs.size(), sig);
   }
 
   inline std::ostream &operator <<(std::ostream &o, const crypto::public_key &v) {

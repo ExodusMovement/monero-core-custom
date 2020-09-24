@@ -11,7 +11,7 @@ Public domain.
 #endif
 
 #include "chacha.h"
-#include "common/int-util.h"
+#include "int-util.h"
 #include "warnings.h"
 
 /*
@@ -169,6 +169,11 @@ static void chacha(unsigned rounds, const void* data, size_t length, const uint8
     cipher += 64;
     data = (uint8_t*)data + 64;
   }
+}
+
+void chacha8(const void* data, size_t length, const uint8_t* key, const uint8_t* iv, char* cipher)
+{
+  chacha(8, data, length, key, iv, cipher);
 }
 
 void chacha20(const void* data, size_t length, const uint8_t* key, const uint8_t* iv, char* cipher)

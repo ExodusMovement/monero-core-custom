@@ -79,6 +79,14 @@ namespace rct {
     inline void copy(key &AA, const key &A) { memcpy(&AA, &A, 32); }
     inline key copy(const key & A) { key AA; memcpy(&AA, &A, 32); return AA; }
 
+    //initializes a key matrix;
+    //first parameter is rows, 
+    //second is columns
+    keyM keyMInit(size_t rows, size_t cols);
+
+    //Various key generation functions        
+    bool toPointCheckOrder(ge_p3 *P, const unsigned char *data);
+
     //generates a random scalar which can be used as a secret key or mask
     key skGen();
     void skGen(key &);
@@ -91,8 +99,12 @@ namespace rct {
     //generates a random secret and corresponding public key
     void skpkGen(key &sk, key &pk);
     std::tuple<key, key> skpkGen();
+    //generates a <secret , public> / Pedersen commitment to the amount
+    std::tuple<ctkey, ctkey> ctskpkGen(xmr_amount amount);
     //generates C =aG + bH from b, a is random
     void genC(key & C, const key & a, xmr_amount amount);
+    //this one is mainly for testing, can take arbitrary amounts..
+    std::tuple<ctkey, ctkey> ctskpkGen(const key &bH);
     // make a pedersen commitment with given key
     key commit(xmr_amount amount, const key &mask);
     // make a pedersen commitment with zero key
@@ -112,6 +124,9 @@ namespace rct {
     key scalarmultH(const key & a);
     // multiplies a point by 8
     key scalarmult8(const key & P);
+    void scalarmult8(ge_p3 &res, const key & P);
+    // checks a is in the main subgroup (ie, not a small one)
+    bool isInMainSubgroup(const key & a);
 
     //Curve addition / subtractions
 
@@ -130,6 +145,10 @@ namespace rct {
     //B must be input after applying "precomp"
     void addKeys3(key &aAbB, const key &a, const key &A, const key &b, const ge_dsmp B);
     void addKeys3(key &aAbB, const key &a, const ge_dsmp A, const key &b, const ge_dsmp B);
+
+    void addKeys_aGbBcC(key &aGbBcC, const key &a, const key &b, const ge_dsmp B, const key &c, const ge_dsmp C);
+    void addKeys_aAbBcC(key &aAbBcC, const key &a, const ge_dsmp A, const key &b, const ge_dsmp B, const key &c, const ge_dsmp C);
+
     //AB = A - B where A, B are curve points
     void subKeys(key &AB, const key &A, const  key &B);
     //checks if A, B are equal as curve points
@@ -147,6 +166,8 @@ namespace rct {
     key cn_fast_hash(const key &in);
     key hash_to_scalar(const key &in);
     //for mg sigs
+    key cn_fast_hash128(const void * in);
+    key hash_to_scalar128(const void * in);
     key cn_fast_hash(const ctkeyV &PC);
     key hash_to_scalar(const ctkeyV &PC);
     //for mg sigs 
@@ -156,9 +177,7 @@ namespace rct {
     key cn_fast_hash(const key64 keys);
     key hash_to_scalar(const key64 keys);
 
-    //returns hashToPoint as described in https://github.com/ShenNoether/ge_fromfe_writeup 
-    key hashToPoint(const key &in);
-    void hashToPoint(key &out, const key &in);
+    void hash_to_p3(ge_p3 &hash8_p3, const key &k);
 
     //sums a vector of curve points (for scalars use sc_add)
     void sumKeys(key & Csum, const key &Cis);

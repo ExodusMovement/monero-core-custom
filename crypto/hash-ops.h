@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2018, The Monero Project
+// Copyright (c) 2014-2020, The Monero Project
 // 
 // All rights reserved.
 // 
@@ -37,7 +37,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "common/int-util.h"
+#include "int-util.h"
 #include "warnings.h"
 
 static inline void *padd(void *p, size_t i) {
@@ -81,4 +81,17 @@ enum {
 void cn_fast_hash(const void *data, size_t length, char *hash);
 void cn_slow_hash(const void *data, size_t length, char *hash, int variant, int prehashed, uint64_t height);
 
+void hash_extra_blake(const void *data, size_t length, char *hash);
+void hash_extra_groestl(const void *data, size_t length, char *hash);
+void hash_extra_jh(const void *data, size_t length, char *hash);
+void hash_extra_skein(const void *data, size_t length, char *hash);
+
 void tree_hash(const char (*hashes)[HASH_SIZE], size_t count, char *root_hash);
+
+#define RX_BLOCK_VERSION	12
+void rx_slow_hash_allocate_state(void);
+void rx_slow_hash_free_state(void);
+uint64_t rx_seedheight(const uint64_t height);
+void rx_seedheights(const uint64_t height, uint64_t *seed_height, uint64_t *next_height);
+void rx_slow_hash(const uint64_t mainheight, const uint64_t seedheight, const char *seedhash, const void *data, size_t length, char *hash, int miners, int is_alt);
+void rx_reorg(const uint64_t split_height);

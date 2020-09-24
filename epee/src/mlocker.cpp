@@ -26,8 +26,6 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include <unistd.h>
-#include "misc_log_ex.h"
 #include "mlocker.h"
 
 namespace epee
@@ -58,7 +56,8 @@ namespace epee
 
   mlocker::~mlocker()
   {
-    // unlock(ptr, len);
+    // try { unlock(ptr, len); }
+    // catch (...) { /* ignore and do not propagate through the dtor */ }
   }
 
   void mlocker::lock(void *ptr, size_t len)

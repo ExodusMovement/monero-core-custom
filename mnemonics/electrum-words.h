@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2018, The Monero Project
+// Copyright (c) 2014-2020, The Monero Project
 // 
 // All rights reserved.
 // 
@@ -41,7 +41,6 @@
 
 #include <string>
 #include <cstdint>
-#include <map>
 #include "crypto/crypto.h"  // for declaration of crypto::secret_key
 
 namespace epee {  class wipeable_string; }
@@ -104,6 +103,27 @@ namespace crypto
      */
     bool bytes_to_words(const crypto::secret_key& src, epee::wipeable_string& words,
       const std::string &language_name);
+
+    /*!
+     * \brief Gets a list of seed languages that are supported.
+     * \param languages A vector is set to the list of languages.
+     * \param english whether to get the names in English or the language language
+     */
+    void get_language_list(std::vector<std::string> &languages, bool english = false);
+
+    /*!
+     * \brief Tells if the seed passed is an old style seed or not.
+     * \param  seed The seed to check (a space delimited concatenated word list)
+     * \return      true if the seed passed is a old style seed false if not.
+     */
+    bool get_is_old_style_seed(const epee::wipeable_string &seed);
+
+    /*!
+     * \brief Returns the name of a language in English
+     * \param  name the name of the language in its own language
+     * \return      the name of the language in English
+     */
+    std::string get_english_name_for(const std::string &name);
   }
 }
 
