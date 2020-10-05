@@ -79,6 +79,5 @@ enum {
 };
 
 void cn_fast_hash(const void *data, size_t length, char *hash);
-void cn_slow_hash(const void *data, size_t length, char *hash, int variant, int prehashed, uint64_t height);
 
 void tree_hash(const char (*hashes)[HASH_SIZE], size_t count, char *root_hash);
