@@ -151,6 +151,16 @@ namespace crypto {
     return res;
   }
 
+  /* UniformRandomBitGenerator using crypto::rand<uint64_t>()
+   */
+  struct random_device
+  {
+    typedef uint64_t result_type;
+    static constexpr result_type min() { return 0; }
+    static constexpr result_type max() { return result_type(-1); }
+    result_type operator()() const { return crypto::rand<result_type>(); }
+  };
+
   /* Generate a new key pair
    */
   inline secret_key generate_keys(public_key &pub, secret_key &sec, const secret_key& recovery_key = secret_key(), bool recover = false) {
