@@ -63,16 +63,6 @@ namespace hw {
         atexit(clear_device_registry);
     }
 
-    bool device_registry::register_device(const std::string & device_name, device * hw_device){
-        auto search = registry.find(device_name);
-        if (search != registry.end()){
-            return false;
-        }
-
-        registry.insert(std::make_pair(device_name, std::unique_ptr<device>(hw_device)));
-        return true;
-    }
-
     device& device_registry::get_device(const std::string & device_descriptor){
         // Device descriptor can contain further specs after first :
         auto delim = device_descriptor.find(':');

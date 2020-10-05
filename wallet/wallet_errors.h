@@ -72,7 +72,6 @@ namespace tools
     //         tx_parse_error
     //         get_tx_pool_error
     //         out_of_hashchain_bounds_error
-    //       signature_check_failed
     //       transfer_error *
     //         get_outs_general_error
     //         not_enough_unlocked_money
@@ -90,7 +89,6 @@ namespace tools
     //         is_key_image_spent_error
     //         get_histogram_error
     //         get_output_distribution
-    //         payment_required
     //       wallet_files_doesnt_correspond
     //
     // * - class with protected ctor
@@ -215,14 +213,6 @@ namespace tools
     struct password_needed : public wallet_runtime_error
     {
       explicit password_needed(std::string&& loc, const std::string &msg = "Password needed")
-        : wallet_runtime_error(std::move(loc), msg)
-      {
-      }
-    };
-    //----------------------------------------------------------------------------------------------------
-    struct password_entry_failed : public wallet_runtime_error
-    {
-      explicit password_entry_failed(std::string&& loc, const std::string &msg = "Password entry failed")
         : wallet_runtime_error(std::move(loc), msg)
       {
       }
@@ -428,14 +418,6 @@ namespace tools
       std::string to_string() const { return refresh_error::to_string(); }
     };
     //----------------------------------------------------------------------------------------------------
-    struct signature_check_failed : public wallet_logic_error
-    {
-      explicit signature_check_failed(std::string&& loc, const std::string& message)
-        : wallet_logic_error(std::move(loc), "Signature check failed " + message)
-      {
-      }
-    };
-    //----------------------------------------------------------------------------------------------------
     struct transfer_error : public wallet_logic_error
     {
     protected:
@@ -446,184 +428,6 @@ namespace tools
     };
     //----------------------------------------------------------------------------------------------------
     typedef failed_rpc_request<transfer_error, get_outs_error_message_index> get_outs_error;
-    //----------------------------------------------------------------------------------------------------
-    struct not_enough_unlocked_money : public transfer_error
-    {
-      explicit not_enough_unlocked_money(std::string&& loc, uint64_t available, uint64_t tx_amount, uint64_t fee)
-        : transfer_error(std::move(loc), "not enough unlocked money")
-        , m_available(available)
-        , m_tx_amount(tx_amount)
-      {
-      }
-
-      uint64_t available() const { return m_available; }
-      uint64_t tx_amount() const { return m_tx_amount; }
-
-      std::string to_string() const
-      {
-        std::ostringstream ss;
-        ss << transfer_error::to_string() <<
-          ", available = " << cryptonote::print_money(m_available) <<
-          ", tx_amount = " << cryptonote::print_money(m_tx_amount);
-        return ss.str();
-      }
-
-    private:
-      uint64_t m_available;
-      uint64_t m_tx_amount;
-    };
-    //----------------------------------------------------------------------------------------------------
-    struct not_enough_money : public transfer_error
-    {
-      explicit not_enough_money(std::string&& loc, uint64_t available, uint64_t tx_amount, uint64_t fee)
-        : transfer_error(std::move(loc), "not enough money")
-        , m_available(available)
-        , m_tx_amount(tx_amount)
-      {
-      }
-
-      uint64_t available() const { return m_available; }
-      uint64_t tx_amount() const { return m_tx_amount; }
-
-      std::string to_string() const
-      {
-        std::ostringstream ss;
-        ss << transfer_error::to_string() <<
-          ", available = " << cryptonote::print_money(m_available) <<
-          ", tx_amount = " << cryptonote::print_money(m_tx_amount);
-        return ss.str();
-      }
-
-    private:
-      uint64_t m_available;
-      uint64_t m_tx_amount;
-    };
-    //----------------------------------------------------------------------------------------------------
-    struct tx_not_possible : public transfer_error
-    {
-      explicit tx_not_possible(std::string&& loc, uint64_t available, uint64_t tx_amount, uint64_t fee)
-        : transfer_error(std::move(loc), "tx not possible")
-        , m_available(available)
-        , m_tx_amount(tx_amount)
-        , m_fee(fee)
-      {
-      }
-
-      uint64_t available() const { return m_available; }
-      uint64_t tx_amount() const { return m_tx_amount; }
-      uint64_t fee() const { return m_fee; }
-
-      std::string to_string() const
-      {
-        std::ostringstream ss;
-        ss << transfer_error::to_string() <<
-          ", available = " << cryptonote::print_money(m_available) <<
-          ", tx_amount = " << cryptonote::print_money(m_tx_amount) <<
-          ", fee = " << cryptonote::print_money(m_fee);
-        return ss.str();
-      }
-
-    private:
-      uint64_t m_available;
-      uint64_t m_tx_amount;
-      uint64_t m_fee;
-    };
-    //----------------------------------------------------------------------------------------------------
-    struct not_enough_outs_to_mix : public transfer_error
-    {
-      typedef std::unordered_map<uint64_t, uint64_t> scanty_outs_t;
-
-      explicit not_enough_outs_to_mix(std::string&& loc, const scanty_outs_t& scanty_outs, size_t mixin_count)
-        : transfer_error(std::move(loc), "not enough outputs to use")
-        , m_scanty_outs(scanty_outs)
-        , m_mixin_count(mixin_count)
-      {
-      }
-
-      const scanty_outs_t& scanty_outs() const { return m_scanty_outs; }
-      size_t mixin_count() const { return m_mixin_count; }
-
-      std::string to_string() const
-      {
-        std::ostringstream ss;
-        ss << transfer_error::to_string() << ", ring size = " << (m_mixin_count + 1) << ", scanty_outs:";
-        for (const auto& out: m_scanty_outs)
-        {
-          ss << '\n' << cryptonote::print_money(out.first) << " - " << out.second;
-        }
-        return ss.str();
-      }
-
-    private:
-      scanty_outs_t m_scanty_outs;
-      size_t m_mixin_count;
-    };
-    //----------------------------------------------------------------------------------------------------
-    struct tx_not_constructed : public transfer_error
-    {
-      typedef std::vector<cryptonote::tx_source_entry> sources_t;
-      typedef std::vector<cryptonote::tx_destination_entry> destinations_t;
-
-      explicit tx_not_constructed(
-          std::string && loc
-        , sources_t const & sources
-        , destinations_t const & destinations
-        , uint64_t unlock_time
-        , cryptonote::network_type nettype
-        )
-        : transfer_error(std::move(loc), "transaction was not constructed")
-        , m_sources(sources)
-        , m_destinations(destinations)
-        , m_unlock_time(unlock_time)
-        , m_nettype(nettype)
-      {
-      }
-
-      const sources_t& sources() const { return m_sources; }
-      const destinations_t& destinations() const { return m_destinations; }
-      uint64_t unlock_time() const { return m_unlock_time; }
-
-      std::string to_string() const
-      {
-        std::ostringstream ss;
-        ss << transfer_error::to_string();
-        ss << "\nSources:";
-        for (size_t i = 0; i < m_sources.size(); ++i)
-        {
-          const cryptonote::tx_source_entry& src = m_sources[i];
-          ss << "\n  source " << i << ":";
-          ss << "\n    amount: " << cryptonote::print_money(src.amount);
-          // It's not good, if logs will contain such much data
-          //ss << "\n    real_output: " << src.real_output;
-          //ss << "\n    real_output_in_tx_index: " << src.real_output_in_tx_index;
-          //ss << "\n    real_out_tx_key: " << epee::string_tools::pod_to_hex(src.real_out_tx_key);
-          //ss << "\n    outputs:";
-          //for (size_t j = 0; j < src.outputs.size(); ++j)
-          //{
-          //  const cryptonote::tx_source_entry::output_entry& out = src.outputs[j];
-          //  ss << "\n      " << j << ": " << out.first << ", " << epee::string_tools::pod_to_hex(out.second);
-          //}
-        }
-
-        ss << "\nDestinations:";
-        for (size_t i = 0; i < m_destinations.size(); ++i)
-        {
-          const cryptonote::tx_destination_entry& dst = m_destinations[i];
-          ss << "\n  " << i << ": " << cryptonote::get_account_address_as_str(m_nettype, dst.is_subaddress, dst.addr) << " " <<
-            cryptonote::print_money(dst.amount);
-        }
-
-        ss << "\nunlock_time: " << m_unlock_time;
-
-        return ss.str();
-      }
-
-    private:
-      sources_t m_sources;
-      destinations_t m_destinations;
-      uint64_t m_unlock_time;
-      cryptonote::network_type m_nettype;
-    };
     //----------------------------------------------------------------------------------------------------
     struct tx_rejected : public transfer_error
     {
@@ -656,88 +460,6 @@ namespace tools
       cryptonote::transaction m_tx;
       std::string m_status;
       std::string m_reason;
-    };
-    //----------------------------------------------------------------------------------------------------
-    struct tx_sum_overflow : public transfer_error
-    {
-      explicit tx_sum_overflow(
-          std::string && loc
-        , const std::vector<cryptonote::tx_destination_entry>& destinations
-        , uint64_t fee
-        , cryptonote::network_type nettype
-        )
-        : transfer_error(std::move(loc), "transaction sum + fee exceeds " + cryptonote::print_money(std::numeric_limits<uint64_t>::max()))
-        , m_destinations(destinations)
-        , m_fee(fee)
-        , m_nettype(nettype)
-      {
-      }
-
-      const std::vector<cryptonote::tx_destination_entry>& destinations() const { return m_destinations; }
-      uint64_t fee() const { return m_fee; }
-
-      std::string to_string() const
-      {
-        std::ostringstream ss;
-        ss << transfer_error::to_string() <<
-          ", fee = " << cryptonote::print_money(m_fee) <<
-          ", destinations:";
-        for (const auto& dst : m_destinations)
-        {
-          ss << '\n' << cryptonote::print_money(dst.amount) << " -> " << cryptonote::get_account_address_as_str(m_nettype, dst.is_subaddress, dst.addr);
-        }
-        return ss.str();
-      }
-
-    private:
-      std::vector<cryptonote::tx_destination_entry> m_destinations;
-      uint64_t m_fee;
-      cryptonote::network_type m_nettype;
-    };
-    //----------------------------------------------------------------------------------------------------
-    struct tx_too_big : public transfer_error
-    {
-      explicit tx_too_big(std::string&& loc, const cryptonote::transaction& tx, uint64_t tx_weight_limit)
-        : transfer_error(std::move(loc), "transaction is too big")
-        , m_tx(tx)
-        , m_tx_valid(true)
-        , m_tx_weight(cryptonote::get_transaction_weight(tx))
-        , m_tx_weight_limit(tx_weight_limit)
-      {
-      }
-
-      explicit tx_too_big(std::string&& loc, uint64_t tx_weight, uint64_t tx_weight_limit)
-        : transfer_error(std::move(loc), "transaction would be too big")
-        , m_tx_valid(false)
-        , m_tx_weight(tx_weight)
-        , m_tx_weight_limit(tx_weight_limit)
-      {
-      }
-
-      bool tx_valid() const { return m_tx_valid; }
-      const cryptonote::transaction& tx() const { return m_tx; }
-      uint64_t tx_weight() const { return m_tx_weight; }
-      uint64_t tx_weight_limit() const { return m_tx_weight_limit; }
-
-      std::string to_string() const
-      {
-        std::ostringstream ss;
-        ss << transfer_error::to_string() <<
-          ", tx_weight_limit = " << m_tx_weight_limit <<
-          ", tx weight = " << m_tx_weight;
-        if (m_tx_valid)
-        {
-          cryptonote::transaction tx = m_tx;
-          ss << ", tx:\n" << cryptonote::obj_to_json_str(tx);
-        }
-        return ss.str();
-      }
-
-    private:
-      cryptonote::transaction m_tx;
-      bool m_tx_valid;
-      uint64_t m_tx_weight;
-      uint64_t m_tx_weight_limit;
     };
     //----------------------------------------------------------------------------------------------------
     struct zero_destination : public transfer_error
@@ -782,20 +504,6 @@ namespace tools
       const std::string m_status;
     };
     //----------------------------------------------------------------------------------------------------
-    struct wallet_coded_rpc_error : public wallet_rpc_error
-    {
-      explicit wallet_coded_rpc_error(std::string&& loc, const std::string& request, int code, const std::string& status)
-        : wallet_rpc_error(std::move(loc), std::string("error ") + std::to_string(code) + (" in ") + request + " RPC: " + status, request),
-        m_code(code), m_status(status)
-      {
-      }
-      int code() const { return m_code; }
-      const std::string& status() const { return m_status; }
-    private:
-      int m_code;
-      const std::string m_status;
-    };
-    //----------------------------------------------------------------------------------------------------
     struct daemon_busy : public wallet_rpc_error
     {
       explicit daemon_busy(std::string&& loc, const std::string& request)
@@ -836,14 +544,6 @@ namespace tools
       }
     };
     //----------------------------------------------------------------------------------------------------
-    struct payment_required: public wallet_rpc_error
-    {
-      explicit payment_required(std::string&& loc, const std::string& request)
-        : wallet_rpc_error(std::move(loc), "payment required", request)
-      {
-      }
-    };
-    //----------------------------------------------------------------------------------------------------
     struct wallet_files_doesnt_correspond : public wallet_logic_error
     {
       explicit wallet_files_doesnt_correspond(std::string&& loc, const std::string& keys_file, const std::string& wallet_file)
@@ -859,31 +559,6 @@ namespace tools
     private:
       std::string m_keys_file;
       std::string m_wallet_file;
-    };
-    //----------------------------------------------------------------------------------------------------
-    struct mms_error : public wallet_logic_error
-    {
-    protected:
-      explicit mms_error(std::string&& loc, const std::string& message)
-        : wallet_logic_error(std::move(loc), message)
-      {
-      }
-    };
-    //----------------------------------------------------------------------------------------------------
-    struct no_connection_to_bitmessage : public mms_error
-    {
-      explicit no_connection_to_bitmessage(std::string&& loc, const std::string& address)
-        : mms_error(std::move(loc), "no connection to PyBitmessage at address " + address)
-      {
-      }
-    };
-    //----------------------------------------------------------------------------------------------------
-    struct bitmessage_api_error : public mms_error
-    {
-      explicit bitmessage_api_error(std::string&& loc, const std::string& error_string)
-        : mms_error(std::move(loc), "PyBitmessage returned " + error_string)
-      {
-      }
     };
     //----------------------------------------------------------------------------------------------------
 

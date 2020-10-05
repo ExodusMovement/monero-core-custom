@@ -198,10 +198,6 @@ namespace hw {
         /*                               TRANSACTION                               */
         /* ======================================================================= */
 
-        virtual void generate_tx_proof(const crypto::hash &prefix_hash, 
-                                       const crypto::public_key &R, const crypto::public_key &A, const boost::optional<crypto::public_key> &B, const crypto::public_key &D, const crypto::secret_key &r, 
-                                       crypto::signature &sig) = 0;
-
         virtual bool  open_tx(crypto::secret_key &tx_key) = 0;
 
         virtual void get_transaction_prefix_hash(const cryptonote::transaction_prefix& tx, crypto::hash& h) = 0;
@@ -261,11 +257,9 @@ namespace hw {
 
     public:
       device_registry();
-      bool register_device(const std::string & device_name, device * hw_device);
       device& get_device(const std::string & device_descriptor);
     };
 
     device& get_device(const std::string & device_descriptor);
-    bool register_device(const std::string & device_name, device * hw_device);
 }
 

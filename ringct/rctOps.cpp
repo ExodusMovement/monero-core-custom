@@ -219,35 +219,7 @@ static const zero_commitment zero_commitments[] = {
 
 namespace rct {
 
-    //Various key initialization functions
-
-    //initializes a key matrix;
-    //first parameter is rows,
-    //second is columns
-    keyM keyMInit(size_t rows, size_t cols) {
-        keyM rv(cols);
-        size_t i = 0;
-        for (i = 0 ; i < cols ; i++) {
-            rv[i] = keyV(rows);
-        }
-        return rv;
-    }
-
-
-
-
     //Various key generation functions
-
-    bool toPointCheckOrder(ge_p3 *P, const unsigned char *data)
-    {
-        if (ge_frombytes_vartime(P, data))
-            return false;
-        ge_p2 R;
-        ge_scalarmult(&R, curveOrder().bytes, P);
-        key tmp;
-        ge_tobytes(tmp.bytes, &R);
-        return tmp == identity();
-    }
 
     //generates a random scalar which can be used as a secret key or mask
     void skGen(key &sk) {
@@ -296,27 +268,6 @@ namespace rct {
     //generates C =aG + bH from b, a is given..
     void genC(key & C, const key & a, xmr_amount amount) {
         addKeys2(C, a, d2h(amount), rct::H);
-    }
-
-    //generates a <secret , public> / Pedersen commitment to the amount
-    tuple<ctkey, ctkey> ctskpkGen(xmr_amount amount) {
-        ctkey sk, pk;
-        skpkGen(sk.dest, pk.dest);
-        skpkGen(sk.mask, pk.mask);
-        key am = d2h(amount);
-        key bH = scalarmultH(am);
-        addKeys(pk.mask, pk.mask, bH);
-        return make_tuple(sk, pk);
-    }
-    
-    
-    //generates a <secret , public> / Pedersen commitment but takes bH as input 
-    tuple<ctkey, ctkey> ctskpkGen(const key &bH) {
-        ctkey sk, pk;
-        skpkGen(sk.dest, pk.dest);
-        skpkGen(sk.mask, pk.mask);
-        addKeys(pk.mask, pk.mask, bH);
-        return make_tuple(sk, pk);
     }
     
     key zeroCommit(xmr_amount amount) {
@@ -418,12 +369,6 @@ namespace rct {
         ge_p1p1 p1;
         ge_mul8(&p1, &p2);
         ge_p1p1_to_p3(&res, &p1);
-    }
-
-    //Computes lA where l is the curve order
-    bool isInMainSubgroup(const key & A) {
-        ge_p3 p3;
-        return toPointCheckOrder(&p3, A.bytes);
     }
 
     //Curve addition / subtractions
@@ -589,19 +534,6 @@ namespace rct {
         sc_reduce32(hash.bytes);
         return hash;
      }
-    
-    //cn_fast_hash for a 128 byte unsigned char
-    key cn_fast_hash128(const void * in) {
-        key hash;
-        keccak((const uint8_t *)in, 128, hash.bytes, 32);
-        return hash;
-    }
-    
-    key hash_to_scalar128(const void * in) {
-        key hash = cn_fast_hash128(in);
-        sc_reduce32(hash.bytes);
-        return hash;
-    }
     
     //cn_fast_hash for multisig purpose
     //This takes the outputs and commitments

@@ -57,11 +57,6 @@ DISABLE_VS_WARNINGS(4244 4345)
     return *m_device;
   }
   //-----------------------------------------------------------------
-  void account_keys::set_device( hw::device &hwdev)  {
-    m_device = &hwdev;
-    MCDEBUG("device", "account_keys::set_device device type: "<<typeid(hwdev).name());
-  }
-  //-----------------------------------------------------------------
   static void derive_key(const crypto::chacha_key &base_key, crypto::chacha_key &key)
   {
     static_assert(sizeof(base_key) == sizeof(crypto::hash), "chacha key and hash should be the same size");
@@ -111,21 +106,6 @@ DISABLE_VS_WARNINGS(4244 4345)
     xor_with_key_stream(key);
   }
   //-----------------------------------------------------------------
-  void account_keys::encrypt_viewkey(const crypto::chacha_key &key)
-  {
-    // encrypt a large enough byte stream with chacha20
-    epee::wipeable_string key_stream = get_key_stream(key, m_encryption_iv, sizeof(crypto::secret_key) * 2);
-    const char *ptr = key_stream.data();
-    ptr += sizeof(crypto::secret_key);
-    for (size_t i = 0; i < sizeof(crypto::secret_key); ++i)
-      m_view_secret_key.data[i] ^= *ptr++;
-  }
-  //-----------------------------------------------------------------
-  void account_keys::decrypt_viewkey(const crypto::chacha_key &key)
-  {
-    encrypt_viewkey(key);
-  }
-  //-----------------------------------------------------------------
   account_base::account_base()
   {
     set_null();
@@ -135,21 +115,6 @@ DISABLE_VS_WARNINGS(4244 4345)
   {
     m_keys = account_keys();
     m_creation_timestamp = 0;
-  }
-  //-----------------------------------------------------------------
-  void account_base::deinit()
-  {
-    try{
-      m_keys.get_device().disconnect();
-    } catch (const std::exception &e){
-      MERROR("Device disconnect exception: " << e.what());
-    }
-  }
-  //-----------------------------------------------------------------
-  void account_base::forget_spend_key()
-  {
-    m_keys.m_spend_secret_key = crypto::secret_key();
-    m_keys.m_multisig_keys.clear();
   }
   //-----------------------------------------------------------------
   crypto::secret_key account_base::generate(const crypto::secret_key& recovery_key, bool recover, bool two_random)
@@ -182,81 +147,7 @@ DISABLE_VS_WARNINGS(4244 4345)
     }
     return first;
   }
-  //-----------------------------------------------------------------
-  void account_base::create_from_keys(const cryptonote::account_public_address& address, const crypto::secret_key& spendkey, const crypto::secret_key& viewkey)
-  {
-    m_keys.m_account_address = address;
-    m_keys.m_spend_secret_key = spendkey;
-    m_keys.m_view_secret_key = viewkey;
 
-    struct tm timestamp = {0};
-    timestamp.tm_year = 2014 - 1900;  // year 2014
-    timestamp.tm_mon = 4 - 1;  // month april
-    timestamp.tm_mday = 15;  // 15th of april
-    timestamp.tm_hour = 0;
-    timestamp.tm_min = 0;
-    timestamp.tm_sec = 0;
-
-    m_creation_timestamp = mktime(&timestamp);
-    if (m_creation_timestamp == (uint64_t)-1) // failure
-      m_creation_timestamp = 0; // lowest value
-  }
-
-  //-----------------------------------------------------------------
-  void account_base::create_from_device(const std::string &device_name)
-  {
-    hw::device &hwdev =  hw::get_device(device_name);
-    hwdev.set_name(device_name);
-    create_from_device(hwdev);
-  }
-
-  void account_base::create_from_device(hw::device &hwdev)
-  {
-    m_keys.set_device(hwdev);
-    MCDEBUG("device", "device type: "<<typeid(hwdev).name());
-    CHECK_AND_ASSERT_THROW_MES(hwdev.init(), "Device init failed");
-    CHECK_AND_ASSERT_THROW_MES(hwdev.connect(), "Device connect failed");
-    try {
-      CHECK_AND_ASSERT_THROW_MES(hwdev.get_public_address(m_keys.m_account_address), "Cannot get a device address");
-      CHECK_AND_ASSERT_THROW_MES(hwdev.get_secret_keys(m_keys.m_view_secret_key, m_keys.m_spend_secret_key), "Cannot get device secret");
-    } catch (const std::exception &e){
-      hwdev.disconnect();
-      throw;
-    }
-    struct tm timestamp = {0};
-    timestamp.tm_year = 2014 - 1900;  // year 2014
-    timestamp.tm_mon = 4 - 1;  // month april
-    timestamp.tm_mday = 15;  // 15th of april
-    timestamp.tm_hour = 0;
-    timestamp.tm_min = 0;
-    timestamp.tm_sec = 0;
-
-    m_creation_timestamp = mktime(&timestamp);
-    if (m_creation_timestamp == (uint64_t)-1) // failure
-      m_creation_timestamp = 0; // lowest value
-  }
-
-  //-----------------------------------------------------------------
-  void account_base::create_from_viewkey(const cryptonote::account_public_address& address, const crypto::secret_key& viewkey)
-  {
-    crypto::secret_key fake;
-    memset(&unwrap(unwrap(fake)), 0, sizeof(fake));
-    create_from_keys(address, fake, viewkey);
-  }
-  //-----------------------------------------------------------------
-  bool account_base::make_multisig(const crypto::secret_key &view_secret_key, const crypto::secret_key &spend_secret_key, const crypto::public_key &spend_public_key, const std::vector<crypto::secret_key> &multisig_keys)
-  {
-    m_keys.m_account_address.m_spend_public_key = spend_public_key;
-    m_keys.m_view_secret_key = view_secret_key;
-    m_keys.m_spend_secret_key = spend_secret_key;
-    m_keys.m_multisig_keys = multisig_keys;
-    return crypto::secret_key_to_public_key(view_secret_key, m_keys.m_account_address.m_view_public_key);
-  }
-  //-----------------------------------------------------------------
-  void account_base::finalize_multisig(const crypto::public_key &spend_public_key)
-  {
-    m_keys.m_account_address.m_spend_public_key = spend_public_key;
-  }
   //-----------------------------------------------------------------
   const account_keys& account_base::get_keys() const
   {
@@ -268,11 +159,4 @@ DISABLE_VS_WARNINGS(4244 4345)
     //TODO: change this code into base 58
     return get_account_address_as_str(nettype, false, m_keys.m_account_address);
   }
-  //-----------------------------------------------------------------
-  std::string account_base::get_public_integrated_address_str(const crypto::hash8 &payment_id, network_type nettype) const
-  {
-    //TODO: change this code into base 58
-    return get_account_integrated_address_as_str(nettype, m_keys.m_account_address, payment_id);
-  }
-  //-----------------------------------------------------------------
 }

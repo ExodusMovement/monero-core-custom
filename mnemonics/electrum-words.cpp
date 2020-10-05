@@ -454,44 +454,6 @@ namespace crypto
       return language_instances;
     }
 
-    /*!
-     * \brief Gets a list of seed languages that are supported.
-     * \param languages The vector is set to the list of languages.
-     */
-    void get_language_list(std::vector<std::string> &languages, bool english)
-    {
-      const std::vector<const Language::Base*> language_instances = get_language_list();
-      for (std::vector<const Language::Base*>::const_iterator it = language_instances.begin();
-        it != language_instances.end(); it++)
-      {
-        languages.push_back(english ? (*it)->get_english_language_name() : (*it)->get_language_name());
-      }
-    }
-
-    /*!
-     * \brief Tells if the seed passed is an old style seed or not.
-     * \param  seed The seed to check (a space delimited concatenated word list)
-     * \return      true if the seed passed is a old style seed false if not.
-     */
-    bool get_is_old_style_seed(const epee::wipeable_string &seed)
-    {
-      std::vector<epee::wipeable_string> word_list;
-      seed.split(word_list);
-      return word_list.size() != (seed_length + 1);
-    }
-
-    std::string get_english_name_for(const std::string &name)
-    {
-      const std::vector<const Language::Base*> language_instances = get_language_list();
-      for (std::vector<const Language::Base*>::const_iterator it = language_instances.begin();
-        it != language_instances.end(); it++)
-      {
-        if ((*it)->get_language_name() == name)
-          return (*it)->get_english_language_name();
-      }
-      return "<language not found>";
-    }
-
   }
 
 }

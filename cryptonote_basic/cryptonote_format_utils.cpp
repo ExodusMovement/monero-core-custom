@@ -266,22 +266,6 @@ namespace cryptonote
     return true;
   }
   //---------------------------------------------------------------
-  bool is_v1_tx(const blobdata_ref& tx_blob)
-  {
-    uint64_t version;
-    const char* begin = static_cast<const char*>(tx_blob.data());
-    const char* end = begin + tx_blob.size();
-    int read = tools::read_varint(begin, end, version);
-    if (read <= 0)
-      throw std::runtime_error("Internal error getting transaction version");
-    return version <= 1;
-  }
-  //---------------------------------------------------------------
-  bool is_v1_tx(const blobdata& tx_blob)
-  {
-    return is_v1_tx(blobdata_ref{tx_blob.data(), tx_blob.size()});
-  }
-  //---------------------------------------------------------------
   bool generate_key_image_helper(const account_keys& ack, const std::unordered_map<crypto::public_key, subaddress_index>& subaddresses, const crypto::public_key& out_key, const crypto::public_key& tx_public_key, const std::vector<crypto::public_key>& additional_tx_public_keys, size_t real_output_index, keypair& in_ephemeral, crypto::key_image& ki, hw::device &hwdev)
   {
     crypto::key_derivation recv_derivation = AUTO_VAL_INIT(recv_derivation);
@@ -373,51 +357,6 @@ namespace cryptonote
     return true;
   }
   //---------------------------------------------------------------
-  uint64_t power_integral(uint64_t a, uint64_t b)
-  {
-    if(b == 0)
-      return 1;
-    uint64_t total = a;
-    for(uint64_t i = 1; i != b; i++)
-      total *= a;
-    return total;
-  }
-  //---------------------------------------------------------------
-  bool parse_amount(uint64_t& amount, const std::string& str_amount_)
-  {
-    std::string str_amount = str_amount_;
-    boost::algorithm::trim(str_amount);
-
-    size_t point_index = str_amount.find_first_of('.');
-    size_t fraction_size;
-    if (std::string::npos != point_index)
-    {
-      fraction_size = str_amount.size() - point_index - 1;
-      while (default_decimal_point < fraction_size && '0' == str_amount.back())
-      {
-        str_amount.erase(str_amount.size() - 1, 1);
-        --fraction_size;
-      }
-      if (default_decimal_point < fraction_size)
-        return false;
-      str_amount.erase(point_index, 1);
-    }
-    else
-    {
-      fraction_size = 0;
-    }
-
-    if (str_amount.empty())
-      return false;
-
-    if (fraction_size < default_decimal_point)
-    {
-      str_amount.append(default_decimal_point - fraction_size, '0');
-    }
-
-    return string_tools::get_xtype_from_string(amount, str_amount);
-  }
-  //---------------------------------------------------------------
   uint64_t get_transaction_weight(const transaction &tx, size_t blob_size)
   {
     CHECK_AND_ASSERT_MES(!tx.pruned, std::numeric_limits<uint64_t>::max(), "get_transaction_weight does not support pruned txes");
@@ -430,52 +369,6 @@ namespace cryptonote
     uint64_t bp_clawback = get_transaction_weight_clawback(tx, n_padded_outputs);
     CHECK_AND_ASSERT_THROW_MES_L1(bp_clawback <= std::numeric_limits<uint64_t>::max() - blob_size, "Weight overflow");
     return blob_size + bp_clawback;
-  }
-  //---------------------------------------------------------------
-  uint64_t get_pruned_transaction_weight(const transaction &tx)
-  {
-    CHECK_AND_ASSERT_MES(tx.pruned, std::numeric_limits<uint64_t>::max(), "get_pruned_transaction_weight does not support non pruned txes");
-    CHECK_AND_ASSERT_MES(tx.version >= 2, std::numeric_limits<uint64_t>::max(), "get_pruned_transaction_weight does not support v1 txes");
-    CHECK_AND_ASSERT_MES(tx.rct_signatures.type >= rct::RCTTypeBulletproof2 || tx.rct_signatures.type == rct::RCTTypeCLSAG,
-        std::numeric_limits<uint64_t>::max(), "get_pruned_transaction_weight does not support older range proof types");
-    CHECK_AND_ASSERT_MES(!tx.vin.empty(), std::numeric_limits<uint64_t>::max(), "empty vin");
-    CHECK_AND_ASSERT_MES(tx.vin[0].type() == typeid(cryptonote::txin_to_key), std::numeric_limits<uint64_t>::max(), "empty vin");
-
-    // get pruned data size
-    std::ostringstream s;
-    binary_archive<true> a(s);
-    ::serialization::serialize(a, const_cast<transaction&>(tx));
-    uint64_t weight = s.str().size(), extra;
-
-    // nbps (technically varint)
-    weight += 1;
-
-    // calculate deterministic bulletproofs size (assumes canonical BP format)
-    size_t nrl = 0, n_padded_outputs;
-    while ((n_padded_outputs = (1u << nrl)) < tx.vout.size())
-      ++nrl;
-    nrl += 6;
-    extra = 32 * (9 + 2 * nrl) + 2;
-    weight += extra;
-
-    // calculate deterministic CLSAG/MLSAG data size
-    const size_t ring_size = boost::get<cryptonote::txin_to_key>(tx.vin[0]).key_offsets.size();
-    if (tx.rct_signatures.type == rct::RCTTypeCLSAG)
-      extra = tx.vin.size() * (ring_size + 2) * 32;
-    else
-      extra = tx.vin.size() * (ring_size * (1 + 1) * 32 + 32 /* cc */);
-    weight += extra;
-
-    // calculate deterministic pseudoOuts size
-    extra =  32 * (tx.vin.size());
-    weight += extra;
-
-    // clawback
-    uint64_t bp_clawback = get_transaction_weight_clawback(tx, n_padded_outputs);
-    CHECK_AND_ASSERT_THROW_MES_L1(bp_clawback <= std::numeric_limits<uint64_t>::max() - weight, "Weight overflow");
-    weight += bp_clawback;
-
-    return weight;
   }
   //---------------------------------------------------------------
   uint64_t get_transaction_weight(const transaction &tx)
@@ -493,36 +386,6 @@ namespace cryptonote
       blob_size = s.str().size();
     }
     return get_transaction_weight(tx, blob_size);
-  }
-  //---------------------------------------------------------------
-  bool get_tx_fee(const transaction& tx, uint64_t & fee)
-  {
-    if (tx.version > 1)
-    {
-      fee = tx.rct_signatures.txnFee;
-      return true;
-    }
-    uint64_t amount_in = 0;
-    uint64_t amount_out = 0;
-    for(auto& in: tx.vin)
-    {
-      CHECK_AND_ASSERT_MES(in.type() == typeid(txin_to_key), 0, "unexpected type id in transaction");
-      amount_in += boost::get<txin_to_key>(in).amount;
-    }
-    for(auto& o: tx.vout)
-      amount_out += o.amount;
-
-    CHECK_AND_ASSERT_MES(amount_in >= amount_out, false, "transaction spend (" <<amount_in << ") more than it has (" << amount_out << ")");
-    fee = amount_in - amount_out;
-    return true;
-  }
-  //---------------------------------------------------------------
-  uint64_t get_tx_fee(const transaction& tx)
-  {
-    uint64_t r = 0;
-    if(!get_tx_fee(tx, r))
-      return 0;
-    return r;
   }
   //---------------------------------------------------------------
   bool parse_tx_extra(const std::vector<uint8_t>& tx_extra, std::vector<tx_extra_field>& tx_extra_fields)
