@@ -592,15 +592,6 @@ namespace rct {
       ge_p1p1_to_p3(&hash8_p3, &hash8_p1p1);
     }
 
-    //sums a vector of curve points (for scalars use sc_add)
-    void sumKeys(key & Csum, const keyV &  Cis) {
-        identity(Csum);
-        size_t i = 0;
-        for (i = 0; i < Cis.size(); i++) {
-            addKeys(Csum, Csum, Cis[i]);
-        }
-    }
-
     //Elliptic Curve Diffie Helman: encodes and decodes the amount b and mask a
     // where C= aG + bH
     static key ecdhHash(const key &k)
