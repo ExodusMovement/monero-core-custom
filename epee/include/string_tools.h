@@ -64,7 +64,6 @@ namespace epee
 {
 namespace string_tools
 {
-  //----------------------------------------------------------------------------
   inline std::string buff_to_hex_nodelimer(const std::string& src)
   {
     return to_hex::string(to_byte_span(to_span(src)));
@@ -74,39 +73,6 @@ namespace string_tools
   {
     return from_hex::to_string(res, s);
   }
-  //----------------------------------------------------------------------------
-PUSH_WARNINGS
-DISABLE_GCC_WARNING(maybe-uninitialized)
-  template<class XType>
-  inline bool get_xtype_from_string(OUT XType& val, const std::string& str_id)
-  {
-    if (std::is_integral<XType>::value && !std::numeric_limits<XType>::is_signed && !std::is_same<XType, bool>::value)
-    {
-      for (char c : str_id)
-      {
-        if (!epee::misc_utils::parse::isdigit(c))
-          return false;
-      }
-    }
-
-    try
-    {
-      val = boost::lexical_cast<XType>(str_id);
-      return true;
-    }
-    catch(const std::exception& /*e*/)
-    {
-      //const char* pmsg = e.what();
-      return false;
-    }
-    catch(...)
-    {
-      return false;
-    }
-
-    return true;
-  }
-POP_WARNINGS
   //----------------------------------------------------------------------------
   template<class t_pod_type>
   std::string pod_to_hex(const t_pod_type& s)

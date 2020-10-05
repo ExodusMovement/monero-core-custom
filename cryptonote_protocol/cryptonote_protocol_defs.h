@@ -87,4 +87,6 @@ namespace cryptonote
 
     block_complete_entry(): pruned(false), block_weight(0) {}
   };
+
+
 }

@@ -86,10 +86,4 @@ namespace hw {
         device_registry *registry = get_device_registry();
         return registry->get_device(device_descriptor);
     }
-
-    bool register_device(const std::string & device_name, device * hw_device){
-        device_registry *registry = get_device_registry();
-        return registry->register_device(device_name, hw_device);
-    }
-
 }

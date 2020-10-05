@@ -107,27 +107,8 @@
 
 #define LOCAL_ASSERT(expr)
 
-std::string mlog_get_default_log_path(const char *default_filename);
-void mlog_configure(const std::string &filename_base, bool console, const std::size_t max_log_file_size = MAX_LOG_FILE_SIZE, const std::size_t max_log_files = MAX_LOG_FILES);
-void mlog_set_categories(const char *categories);
-std::string mlog_get_categories();
-void mlog_set_log_level(int level);
-void mlog_set_log(const char *log);
-
 namespace epee
 {
-namespace debug
-{
-  inline bool get_set_enable_assert(bool set = false, bool v = false)
-  {
-    static bool e = true;
-    if(set)
-      e = v;
-    return e;
-  }
-}
-
-
 
 #define ENDL std::endl
 
@@ -185,43 +166,6 @@ namespace debug
 #ifndef CHECK_AND_ASSERT_MES2
 #define CHECK_AND_ASSERT_MES2(expr, message)   do{if(!(expr)) {LOG_ERROR(message); };}while(0)
 #endif
-
-enum console_colors
-{
-  console_color_default,
-  console_color_white,
-  console_color_red,
-  console_color_green,
-  console_color_blue,
-  console_color_cyan,
-  console_color_magenta,
-  console_color_yellow
-};
-
-bool is_stdout_a_tty();
-void set_console_color(int color, bool bright);
-void reset_console_color();
-
-}
-
-extern "C"
-{
-
-#endif
-
-#ifdef __GNUC__
-#define ATTRIBUTE_PRINTF __attribute__((format(printf, 2, 3)))
-#else
-#define ATTRIBUTE_PRINTF
-#endif
-
-bool merror(const char *category, const char *format, ...) ATTRIBUTE_PRINTF;
-bool mwarning(const char *category, const char *format, ...) ATTRIBUTE_PRINTF;
-bool minfo(const char *category, const char *format, ...) ATTRIBUTE_PRINTF;
-bool mdebug(const char *category, const char *format, ...) ATTRIBUTE_PRINTF;
-bool mtrace(const char *category, const char *format, ...) ATTRIBUTE_PRINTF;
-
-#ifdef __cplusplus
 
 }
 

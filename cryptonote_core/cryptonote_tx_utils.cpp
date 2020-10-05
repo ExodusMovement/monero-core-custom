@@ -532,22 +532,4 @@ namespace cryptonote
     }
   }
   //---------------------------------------------------------------
-  bool construct_tx(const account_keys& sender_account_keys, std::vector<tx_source_entry>& sources, const std::vector<tx_destination_entry>& destinations, const boost::optional<cryptonote::account_public_address>& change_addr, const std::vector<uint8_t> &extra, transaction& tx, uint64_t unlock_time)
-  {
-     std::unordered_map<crypto::public_key, cryptonote::subaddress_index> subaddresses;
-     subaddresses[sender_account_keys.m_account_address.m_spend_public_key] = {0,0};
-     crypto::secret_key tx_key;
-     std::vector<crypto::secret_key> additional_tx_keys;
-     std::vector<tx_destination_entry> destinations_copy = destinations;
-     return construct_tx_and_get_tx_key(sender_account_keys, subaddresses, sources, destinations_copy, change_addr, extra, tx, unlock_time, tx_key, additional_tx_keys, false, { rct::RangeProofBorromean, 0}, NULL);
-  }
-  //---------------------------------------------------------------
-  bool generate_genesis_block(
-      block& bl
-    , std::string const & genesis_tx
-    , uint32_t nonce
-    )
-  {
-    return true;
-  }
 }

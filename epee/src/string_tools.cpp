@@ -50,4 +50,3 @@ namespace string_tools
   }
 }
 }
-

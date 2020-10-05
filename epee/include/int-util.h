@@ -105,30 +105,6 @@ static inline uint64_t mul128(uint64_t multiplier, uint64_t multiplicand, uint64
   return product_lo;
 }
 
-static inline uint64_t div_with_reminder(uint64_t dividend, uint32_t divisor, uint32_t* remainder) {
-  dividend |= ((uint64_t)*remainder) << 32;
-  *remainder = dividend % divisor;
-  return dividend / divisor;
-}
-
-// Long division with 2^32 base
-static inline uint32_t div128_32(uint64_t dividend_hi, uint64_t dividend_lo, uint32_t divisor, uint64_t* quotient_hi, uint64_t* quotient_lo) {
-  uint64_t dividend_dwords[4];
-  uint32_t remainder = 0;
-
-  dividend_dwords[3] = hi_dword(dividend_hi);
-  dividend_dwords[2] = lo_dword(dividend_hi);
-  dividend_dwords[1] = hi_dword(dividend_lo);
-  dividend_dwords[0] = lo_dword(dividend_lo);
-
-  *quotient_hi  = div_with_reminder(dividend_dwords[3], divisor, &remainder) << 32;
-  *quotient_hi |= div_with_reminder(dividend_dwords[2], divisor, &remainder);
-  *quotient_lo  = div_with_reminder(dividend_dwords[1], divisor, &remainder) << 32;
-  *quotient_lo |= div_with_reminder(dividend_dwords[0], divisor, &remainder);
-
-  return remainder;
-}
-
 #define IDENT16(x) ((uint16_t) (x))
 #define IDENT32(x) ((uint32_t) (x))
 #define IDENT64(x) ((uint64_t) (x))

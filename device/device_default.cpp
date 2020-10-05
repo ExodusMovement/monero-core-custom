@@ -27,9 +27,6 @@
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 
-
-
-
 #include "device_default.hpp"
 #include "int-util.h"
 #include "crypto/wallet/crypto.h"
@@ -260,10 +257,6 @@ namespace hw {
 
         bool device_default::generate_key_image(const crypto::public_key &pub, const crypto::secret_key &sec, crypto::key_image &image){
             crypto::generate_key_image(pub, sec,image);
-            return true;
-        }
-
-        bool device_default::conceal_derivation(crypto::key_derivation &derivation, const crypto::public_key &tx_pub_key, const std::vector<crypto::public_key> &additional_tx_pub_keys, const crypto::key_derivation &main_derivation, const std::vector<crypto::key_derivation> &additional_derivations){
             return true;
         }
 
