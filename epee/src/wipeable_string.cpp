@@ -164,21 +164,6 @@ void wipeable_string::operator+=(const std::string &s)
   append(s.c_str(), s.size());
 }
 
-void wipeable_string::trim()
-{
-  size_t prefix = 0;
-  while (prefix < size() && data()[prefix] == ' ')
-    ++prefix;
-  if (prefix > 0)
-    memmove(buffer.data(), buffer.data() + prefix, size() - prefix);
-
-  size_t suffix = 0;
-  while (suffix < size()-prefix && data()[size() - 1 - prefix - suffix] == ' ')
-    ++suffix;
-
-  resize(size() - prefix - suffix);
-}
-
 void wipeable_string::split(std::vector<wipeable_string> &fields) const
 {
   fields.clear();
