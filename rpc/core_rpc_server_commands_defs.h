@@ -45,18 +45,6 @@ namespace cryptonote
 #define CORE_RPC_STATUS_NOT_MINING "NOT MINING"
 #define CORE_RPC_STATUS_PAYMENT_REQUIRED "PAYMENT REQUIRED"
 
-// When making *any* change here, bump minor
-// If the change is incompatible, then bump major and set minor to 0
-// This ensures CORE_RPC_VERSION always increases, that every change
-// has its own version, and that clients can just test major to see
-// whether they can talk to a given daemon without having to know in
-// advance which version they will stop working with
-// Don't go over 32767 for any of these
-#define CORE_RPC_VERSION_MAJOR 3
-#define CORE_RPC_VERSION_MINOR 0
-#define MAKE_CORE_RPC_VERSION(major,minor) (((major)<<16)|(minor))
-#define CORE_RPC_VERSION MAKE_CORE_RPC_VERSION(CORE_RPC_VERSION_MAJOR, CORE_RPC_VERSION_MINOR)
-
   struct rpc_request_base
   {
     BEGIN_KV_SERIALIZE_MAP()
