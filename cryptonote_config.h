@@ -100,14 +100,6 @@
 #define CRYPTONOTE_MEMPOOL_TX_LIVETIME                    (86400*3) //seconds, three days
 #define CRYPTONOTE_MEMPOOL_TX_FROM_ALT_BLOCK_LIVETIME     604800 //seconds, one week
 
-
-#define CRYPTONOTE_DANDELIONPP_STEMS              2 // number of outgoing stem connections per epoch
-#define CRYPTONOTE_DANDELIONPP_FLUFF_PROBABILITY 10 // out of 100
-#define CRYPTONOTE_DANDELIONPP_MIN_EPOCH         10 // minutes
-#define CRYPTONOTE_DANDELIONPP_EPOCH_RANGE       30 // seconds
-#define CRYPTONOTE_DANDELIONPP_FLUSH_AVERAGE      5 // seconds average for poisson distributed fluff flush
-#define CRYPTONOTE_DANDELIONPP_EMBARGO_AVERAGE  173 // seconds (see tx_pool.cpp for more info)
-
 // see src/cryptonote_protocol/levin_notify.cpp
 #define CRYPTONOTE_NOISE_MIN_EPOCH                      5      // minutes
 #define CRYPTONOTE_NOISE_EPOCH_RANGE                    30     // seconds
@@ -115,11 +107,6 @@
 #define CRYPTONOTE_NOISE_DELAY_RANGE                    5      // seconds
 #define CRYPTONOTE_NOISE_BYTES                          3*1024 // 3 KiB
 #define CRYPTONOTE_NOISE_CHANNELS                       2      // Max outgoing connections per zone used for noise/covert sending
-
-// Both below are in seconds. The idea is to delay forwarding from i2p/tor
-// to ipv4/6, such that 2+ incoming connections _could_ have sent the tx
-#define CRYPTONOTE_FORWARD_DELAY_BASE (CRYPTONOTE_NOISE_MIN_DELAY + CRYPTONOTE_NOISE_DELAY_RANGE)
-#define CRYPTONOTE_FORWARD_DELAY_AVERAGE (CRYPTONOTE_FORWARD_DELAY_BASE + (CRYPTONOTE_FORWARD_DELAY_BASE / 2))
 
 #define CRYPTONOTE_MAX_FRAGMENTS                        20 // ~20 * NOISE_BYTES max payload size for covert/noise send
 
@@ -152,13 +139,6 @@
 #define P2P_SUPPORT_FLAGS                               P2P_SUPPORT_FLAG_FLUFFY_BLOCKS
 
 #define RPC_IP_FAILS_BEFORE_BLOCK                       3
-
-#define CRYPTONOTE_NAME                         "bitmonero"
-#define CRYPTONOTE_BLOCKCHAINDATA_FILENAME      "data.mdb"
-#define CRYPTONOTE_BLOCKCHAINDATA_LOCK_FILENAME "lock.mdb"
-#define P2P_NET_DATA_FILENAME                   "p2pstate.bin"
-#define RPC_PAYMENTS_DATA_FILENAME              "rpcpayments.bin"
-#define MINER_CONFIG_FILE_NAME                  "miner_conf.json"
 
 #define THREAD_STACK_SIZE                       5 * 1024 * 1024
 

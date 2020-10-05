@@ -90,10 +90,4 @@ namespace epee
   private:
     static bool to_buffer_unchecked(std::uint8_t* out, boost::string_ref src) noexcept;
   };
-
-  //! Convert hex in current C locale encoding to binary
-  struct from_hex_locale
-  {
-      static std::vector<uint8_t> to_vector(boost::string_ref src);
-  };
 }

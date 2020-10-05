@@ -57,8 +57,6 @@ namespace cryptonote
   bool parse_and_validate_tx_from_blob(const blobdata_ref& tx_blob, transaction& tx, crypto::hash& tx_hash);
   bool parse_and_validate_tx_from_blob(const blobdata_ref& tx_blob, transaction& tx);
   bool parse_and_validate_tx_base_from_blob(const blobdata_ref& tx_blob, transaction& tx);
-  bool is_v1_tx(const blobdata_ref& tx_blob);
-  bool is_v1_tx(const blobdata& tx_blob);
 
   template<typename T>
   bool find_tx_extra_field_by_type(const std::vector<tx_extra_field>& tx_extra_fields, T& field, size_t index = 0)
@@ -95,26 +93,19 @@ namespace cryptonote
     crypto::key_derivation derivation;
   };
   boost::optional<subaddress_receive_info> is_out_to_acc_precomp(const std::unordered_map<crypto::public_key, subaddress_index>& subaddresses, const crypto::public_key& out_key, const crypto::key_derivation& derivation, const std::vector<crypto::key_derivation>& additional_derivations, size_t output_index, hw::device &hwdev);
-  bool lookup_acc_outs(const account_keys& acc, const transaction& tx, const crypto::public_key& tx_pub_key, const std::vector<crypto::public_key>& additional_tx_public_keys, std::vector<size_t>& outs, uint64_t& money_transfered);
-  bool lookup_acc_outs(const account_keys& acc, const transaction& tx, std::vector<size_t>& outs, uint64_t& money_transfered);
-  bool get_tx_fee(const transaction& tx, uint64_t & fee);
-  uint64_t get_tx_fee(const transaction& tx);
   bool generate_key_image_helper(const account_keys& ack, const std::unordered_map<crypto::public_key, subaddress_index>& subaddresses, const crypto::public_key& out_key, const crypto::public_key& tx_public_key, const std::vector<crypto::public_key>& additional_tx_public_keys, size_t real_output_index, keypair& in_ephemeral, crypto::key_image& ki, hw::device &hwdev);
   bool generate_key_image_helper_precomp(const account_keys& ack, const crypto::public_key& out_key, const crypto::key_derivation& recv_derivation, size_t real_output_index, const subaddress_index& received_index, keypair& in_ephemeral, crypto::key_image& ki, hw::device &hwdev);
   void get_blob_hash(const blobdata& blob, crypto::hash& res);
   void get_blob_hash(const blobdata_ref& blob, crypto::hash& res);
   crypto::hash get_blob_hash(const blobdata& blob);
   crypto::hash get_blob_hash(const blobdata_ref& blob);
-  std::string short_hash_str(const crypto::hash& h);
 
   crypto::hash get_transaction_hash(const transaction& t);
   bool get_transaction_hash(const transaction& t, crypto::hash& res);
   bool get_transaction_hash(const transaction& t, crypto::hash& res, size_t& blob_size);
   bool get_transaction_hash(const transaction& t, crypto::hash& res, size_t* blob_size);
   bool calculate_transaction_prunable_hash(const transaction& t, const cryptonote::blobdata_ref *blob, crypto::hash& res);
-  crypto::hash get_transaction_prunable_hash(const transaction& t, const cryptonote::blobdata_ref *blob = NULL);
   bool calculate_transaction_hash(const transaction& t, crypto::hash& res, size_t* blob_size);
-  crypto::hash get_pruned_transaction_hash(const transaction& t, const crypto::hash &pruned_data_hash);
 
   blobdata get_block_hashing_blob(const block& b);
   bool calculate_block_hash(const block& b, crypto::hash& res, const blobdata_ref *blob = NULL);
@@ -123,36 +114,11 @@ namespace cryptonote
   bool parse_and_validate_block_from_blob(const blobdata_ref& b_blob, block& b, crypto::hash *block_hash);
   bool parse_and_validate_block_from_blob(const blobdata_ref& b_blob, block& b);
   bool parse_and_validate_block_from_blob(const blobdata_ref& b_blob, block& b, crypto::hash &block_hash);
-  bool get_inputs_money_amount(const transaction& tx, uint64_t& money);
-  uint64_t get_outs_money_amount(const transaction& tx);
   bool check_inputs_types_supported(const transaction& tx);
-  bool check_outs_valid(const transaction& tx);
-  bool parse_amount(uint64_t& amount, const std::string& str_amount);
   uint64_t get_transaction_weight(const transaction &tx);
   uint64_t get_transaction_weight(const transaction &tx, size_t blob_size);
-  uint64_t get_pruned_transaction_weight(const transaction &tx);
 
-  bool check_money_overflow(const transaction& tx);
-  bool check_outs_overflow(const transaction& tx);
-  bool check_inputs_overflow(const transaction& tx);
-  uint64_t get_block_height(const block& b);
-  std::vector<uint64_t> relative_output_offsets_to_absolute(const std::vector<uint64_t>& off);
   std::vector<uint64_t> absolute_output_offsets_to_relative(const std::vector<uint64_t>& off);
-  void set_default_decimal_point(unsigned int decimal_point = CRYPTONOTE_DISPLAY_DECIMAL_POINT);
-  unsigned int get_default_decimal_point();
-  std::string get_unit(unsigned int decimal_point = -1);
-  std::string print_money(uint64_t amount, unsigned int decimal_point = -1);
-  std::string print_money(const boost::multiprecision::uint128_t &amount, unsigned int decimal_point = -1);
-  //---------------------------------------------------------------
-  template<class t_object>
-  bool t_serializable_object_from_blob(t_object& to, const blobdata& b_blob)
-  {
-    std::stringstream ss;
-    ss << b_blob;
-    binary_archive<false> ba(ss);
-    bool r = ::serialization::serialize(ba, to);
-    return r;
-  }
   //---------------------------------------------------------------
   template<class t_object>
   bool t_serializable_object_to_blob(const t_object& to, blobdata& b_blob)
@@ -254,11 +220,7 @@ namespace cryptonote
   void get_tx_tree_hash(const std::vector<crypto::hash>& tx_hashes, crypto::hash& h);
   crypto::hash get_tx_tree_hash(const std::vector<crypto::hash>& tx_hashes);
   crypto::hash get_tx_tree_hash(const block& b);
-  bool is_valid_decomposed_amount(uint64_t amount);
-  void get_hash_stats(uint64_t &tx_hashes_calculated, uint64_t &tx_hashes_cached, uint64_t &block_hashes_calculated, uint64_t & block_hashes_cached);
 
-  crypto::secret_key encrypt_key(crypto::secret_key key, const epee::wipeable_string &passphrase);
-  crypto::secret_key decrypt_key(crypto::secret_key key, const epee::wipeable_string &passphrase);
 #define CHECKED_GET_SPECIFIC_VARIANT(variant_var, specific_type, variable_name, fail_return_val) \
   CHECK_AND_ASSERT_MES(variant_var.type() == typeid(specific_type), fail_return_val, "wrong variant type: " << variant_var.type().name() << ", expected " << typeid(specific_type).name()); \
   specific_type& variable_name = boost::get<specific_type>(variant_var);

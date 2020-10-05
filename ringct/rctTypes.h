@@ -238,9 +238,7 @@ namespace rct {
       END_SERIALIZE()
     };
 
-    size_t n_bulletproof_amounts(const Bulletproof &proof);
     size_t n_bulletproof_max_amounts(const Bulletproof &proof);
-    size_t n_bulletproof_amounts(const std::vector<Bulletproof> &proofs);
     size_t n_bulletproof_max_amounts(const std::vector<Bulletproof> &proofs);
 
     //A container to hold all signatures necessary for RingCT
@@ -530,16 +528,6 @@ namespace rct {
     struct rctSig: public rctSigBase {
         rctSigPrunable p;
 
-        keyV& get_pseudo_outs()
-        {
-          return type == RCTTypeBulletproof || type == RCTTypeBulletproof2 || type == RCTTypeCLSAG ? p.pseudoOuts : pseudoOuts;
-        }
-
-        keyV const& get_pseudo_outs() const
-        {
-          return type == RCTTypeBulletproof || type == RCTTypeBulletproof2 || type == RCTTypeCLSAG ? p.pseudoOuts : pseudoOuts;
-        }
-
         BEGIN_SERIALIZE_OBJECT()
           FIELDS((rctSigBase&)*this)
           FIELD(p)
@@ -649,7 +637,6 @@ namespace rct {
 
     bool is_rct_simple(int type);
     bool is_rct_bulletproof(int type);
-    bool is_rct_borromean(int type);
 
     static inline const rct::key &pk2rct(const crypto::public_key &pk) { return (const rct::key&)pk; }
     static inline const rct::key &sk2rct(const crypto::secret_key &sk) { return (const rct::key&)sk; }

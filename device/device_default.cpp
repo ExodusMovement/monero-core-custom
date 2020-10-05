@@ -27,9 +27,6 @@
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 
-
-
-
 #include "device_default.hpp"
 #include "int-util.h"
 #include "crypto/wallet/crypto.h"
@@ -263,18 +260,9 @@ namespace hw {
             return true;
         }
 
-        bool device_default::conceal_derivation(crypto::key_derivation &derivation, const crypto::public_key &tx_pub_key, const std::vector<crypto::public_key> &additional_tx_pub_keys, const crypto::key_derivation &main_derivation, const std::vector<crypto::key_derivation> &additional_derivations){
-            return true;
-        }
-
         /* ======================================================================= */
         /*                               TRANSACTION                               */
         /* ======================================================================= */
-        void device_default::generate_tx_proof(const crypto::hash &prefix_hash, 
-                                               const crypto::public_key &R, const crypto::public_key &A, const boost::optional<crypto::public_key> &B, const crypto::public_key &D, const crypto::secret_key &r, 
-                                               crypto::signature &sig) {
-            crypto::generate_tx_proof(prefix_hash, R, A, B, D, r, sig);
-        }
 
         bool device_default::open_tx(crypto::secret_key &tx_key) {
             cryptonote::keypair txkey = cryptonote::keypair::generate(*this);
