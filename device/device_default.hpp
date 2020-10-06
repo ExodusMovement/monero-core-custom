@@ -58,8 +58,6 @@ namespace hw {
 
             bool connect(void) override;
             bool disconnect() override;
- 
-            bool set_mode(device_mode mode) override;
 
             /* ======================================================================= */
             /*  LOCKER                                                                 */

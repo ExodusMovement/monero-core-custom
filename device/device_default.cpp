@@ -79,10 +79,6 @@ namespace hw {
             return true;
         }
 
-        bool  device_default::set_mode(device_mode mode) {
-            return device::set_mode(mode);
-        }
-
         /* ======================================================================= */
         /*  LOCKER                                                                 */
         /* ======================================================================= */ 

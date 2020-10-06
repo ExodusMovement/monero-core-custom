@@ -105,7 +105,6 @@ namespace hw {
         virtual bool connect(void) = 0;
         virtual bool disconnect(void) = 0;
 
-        virtual bool set_mode(device_mode mode) { this->mode = mode; return true; }
         virtual device_mode get_mode() const { return mode; }
 
         /* ======================================================================= */
@@ -205,12 +204,6 @@ namespace hw {
     protected:
         device_mode mode;
     } ;
-
-    struct reset_mode {
-        device& hwref;
-        reset_mode(hw::device& dev) : hwref(dev) { }
-        ~reset_mode() { hwref.set_mode(hw::device::NONE);}
-    };
 
     class device_registry {
     private:
