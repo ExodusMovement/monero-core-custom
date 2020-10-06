@@ -163,9 +163,6 @@ namespace rct {
 
     void hash_to_p3(ge_p3 &hash8_p3, const key &k);
 
-    //sums a vector of curve points (for scalars use sc_add)
-    void sumKeys(key & Csum, const key &Cis);
-
     //Elliptic Curve Diffie Helman: encodes and decodes the amount b and mask a
     // where C= aG + bH
     key genCommitmentMask(const key &sk);

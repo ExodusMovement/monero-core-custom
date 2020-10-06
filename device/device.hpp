@@ -105,7 +105,6 @@ namespace hw {
         virtual bool connect(void) = 0;
         virtual bool disconnect(void) = 0;
 
-        virtual bool set_mode(device_mode mode) { this->mode = mode; return true; }
         virtual device_mode get_mode() const { return mode; }
 
         /* ======================================================================= */
@@ -121,7 +120,6 @@ namespace hw {
         /* ======================================================================= */
         virtual bool  get_public_address(cryptonote::account_public_address &pubkey) = 0;
         virtual bool  get_secret_keys(crypto::secret_key &viewkey , crypto::secret_key &spendkey)  = 0;
-        virtual bool  generate_chacha_key(const cryptonote::account_keys &keys, crypto::chacha_key &key, uint64_t kdf_rounds) = 0;
 
         /* ======================================================================= */
         /*                               SUB ADDRESS                               */
@@ -206,12 +204,6 @@ namespace hw {
     protected:
         device_mode mode;
     } ;
-
-    struct reset_mode {
-        device& hwref;
-        reset_mode(hw::device& dev) : hwref(dev) { }
-        ~reset_mode() { hwref.set_mode(hw::device::NONE);}
-    };
 
     class device_registry {
     private:

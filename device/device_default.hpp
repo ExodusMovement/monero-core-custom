@@ -58,8 +58,6 @@ namespace hw {
 
             bool connect(void) override;
             bool disconnect() override;
- 
-            bool set_mode(device_mode mode) override;
 
             /* ======================================================================= */
             /*  LOCKER                                                                 */
@@ -73,7 +71,6 @@ namespace hw {
             /* ======================================================================= */
             bool  get_public_address(cryptonote::account_public_address &pubkey) override;
             bool  get_secret_keys(crypto::secret_key &viewkey , crypto::secret_key &spendkey) override;
-            bool  generate_chacha_key(const cryptonote::account_keys &keys, crypto::chacha_key &key, uint64_t kdf_rounds) override;
  
             /* ======================================================================= */
             /*                               SUB ADDRESS                               */

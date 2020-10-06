@@ -57,13 +57,7 @@ namespace cryptonote
 
     account_keys& operator=(account_keys const&) = default;
 
-    void encrypt(const crypto::chacha_key &key);
-    void decrypt(const crypto::chacha_key &key);
-
     hw::device& get_device()  const ;
-
-  private:
-    void xor_with_key_stream(const crypto::chacha_key &key);
   };
 
   /************************************************************************/

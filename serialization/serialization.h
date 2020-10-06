@@ -151,16 +151,6 @@ inline bool do_serialize(Archive &ar, bool &v)
     typedef boost::true_type type;					\
   }
 
-/*! \macro FREE_SERIALIZER
- *
- * \brief adds the has_free_serializer to the type
- */
-#define FREE_SERIALIZER(T)						\
-  template<>								\
-  struct has_free_serializer<T> {					\
-    typedef boost::true_type type;					\
-  }
-
 /*! \macro VARIANT_TAG
  *
  * \brief Adds the tag \tag to the \a Archive of \a Type
@@ -203,11 +193,6 @@ inline bool do_serialize(Archive &ar, bool &v)
  */
 #define PREPARE_CUSTOM_VECTOR_SERIALIZATION(size, vec)			\
   ::serialization::detail::prepare_custom_vector_serialization(size, vec, typename Archive<W>::is_saving())
-
-/*! \macro PREPARE_CUSTOM_DEQUE_SERIALIZATION
- */
-#define PREPARE_CUSTOM_DEQUE_SERIALIZATION(size, vec)			\
-  ::serialization::detail::prepare_custom_deque_serialization(size, vec, typename Archive<W>::is_saving())
 
 /*! \macro END_SERIALIZE
  * \brief self-explanatory
@@ -279,17 +264,6 @@ inline bool do_serialize(Archive &ar, bool &v)
     if (!ar.stream().good()) return false;	\
   } while(0);
 
-/*! \macro MAGIC_FIELD(m)
- */
-#define MAGIC_FIELD(m)				\
-  std::string magic = m;			\
-  do {						\
-    ar.tag("magic");				\
-    ar.serialize_blob((void*)magic.data(), magic.size()); \
-    if (!ar.stream().good()) return false;	\
-    if (magic != m) return false;		\
-  } while(0);
-
 /*! \macro VERSION_FIELD(v)
  */
 #define VERSION_FIELD(v)			\
@@ -320,17 +294,6 @@ namespace serialization {
 
     template <typename T>
     void prepare_custom_vector_serialization(size_t size, std::vector<T>& vec, const boost::mpl::bool_<false>& /*is_saving*/)
-    {
-      vec.resize(size);
-    }
-
-    template <typename T>
-    void prepare_custom_deque_serialization(size_t size, std::deque<T>& vec, const boost::mpl::bool_<true>& /*is_saving*/)
-    {
-    }
-
-    template <typename T>
-    void prepare_custom_deque_serialization(size_t size, std::deque<T>& vec, const boost::mpl::bool_<false>& /*is_saving*/)
     {
       vec.resize(size);
     }
