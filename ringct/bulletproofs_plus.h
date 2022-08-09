@@ -1,21 +1,21 @@
-// Copyright (c) 2014-2022, The Monero Project
-//
+// Copyright (c) 2017-2022, The Monero Project
+// 
 // All rights reserved.
-//
+// 
 // Redistribution and use in source and binary forms, with or without modification, are
 // permitted provided that the following conditions are met:
-//
+// 
 // 1. Redistributions of source code must retain the above copyright notice, this list of
 //    conditions and the following disclaimer.
-//
+// 
 // 2. Redistributions in binary form must reproduce the above copyright notice, this list
 //    of conditions and the following disclaimer in the documentation and/or other
 //    materials provided with the distribution.
-//
+// 
 // 3. Neither the name of the copyright holder nor the names of its contributors may be
 //    used to endorse or promote products derived from this software without specific
 //    prior written permission.
-//
+// 
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
@@ -25,15 +25,25 @@
 // INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Parts of this file are originally copyright (c) 2012-2013 The Cryptonote developers
 
-#include <iostream>
+#pragma once
 
-extern "C"
+#ifndef BULLETPROOFS_PLUS_H
+#define BULLETPROOFS_PLUS_H
+
+#include "rctTypes.h"
+
+namespace rct
 {
-	void cn_slow_hash(const void *data, size_t length, char *hash, int variant, int prehashed, uint64_t height)
-	{
-		throw std::runtime_error("Didn't expect cn_slow_hash to be called in stripped-down monero-core-custom");
-	}
+
+BulletproofPlus bulletproof_plus_PROVE(const rct::key &v, const rct::key &gamma);
+BulletproofPlus bulletproof_plus_PROVE(uint64_t v, const rct::key &gamma);
+BulletproofPlus bulletproof_plus_PROVE(const rct::keyV &v, const rct::keyV &gamma);
+BulletproofPlus bulletproof_plus_PROVE(const std::vector<uint64_t> &v, const rct::keyV &gamma);
+bool bulletproof_plus_VERIFY(const BulletproofPlus &proof);
+bool bulletproof_plus_VERIFY(const std::vector<const BulletproofPlus*> &proofs);
+bool bulletproof_plus_VERIFY(const std::vector<BulletproofPlus> &proofs);
+
 }
+
+#endif

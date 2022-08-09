@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2020, The Monero Project
+// Copyright (c) 2017-2022, The Monero Project
 // 
 // All rights reserved.
 // 
@@ -28,8 +28,10 @@
 
 #pragma once
 
-#include <vector>
-#include <unordered_map>
 #include "crypto/crypto.h"
 #include "cryptonote_basic/cryptonote_format_utils.h"
 #include "ringct/rctTypes.h"
+
+#include <vector>
+#include <unordered_map>
+#include <unordered_set>

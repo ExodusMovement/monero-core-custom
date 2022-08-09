@@ -1,4 +1,5 @@
-// Copyright (c) 2014-2022, The Monero Project
+// Copyright (c) 2020-2022, The Monero Project
+
 //
 // All rights reserved.
 //
@@ -25,15 +26,13 @@
 // INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Parts of this file are originally copyright (c) 2012-2013 The Cryptonote developers
 
-#include <iostream>
+#pragma once
 
-extern "C"
+namespace cryptonote
 {
-	void cn_slow_hash(const void *data, size_t length, char *hash, int variant, int prehashed, uint64_t height)
-	{
-		throw std::runtime_error("Didn't expect cn_slow_hash to be called in stripped-down monero-core-custom");
-	}
+  struct block;
+  class transaction;
+  struct txpool_event;
+  struct tx_block_template_backlog_entry;
 }

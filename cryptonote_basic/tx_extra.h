@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2020, The Monero Project
+// Copyright (c) 2014-2022, The Monero Project
 // 
 // All rights reserved.
 // 
@@ -57,11 +57,7 @@ namespace cryptonote
       // size - 1 - because of variant tag
       for (size = 1; size <= TX_EXTRA_PADDING_MAX_COUNT; ++size)
       {
-        std::ios_base::iostate state = ar.stream().rdstate();
-        bool eof = EOF == ar.stream().peek();
-        ar.stream().clear(state);
-
-        if (eof)
+        if (ar.eof())
           break;
 
         uint8_t zero;
@@ -139,8 +135,7 @@ namespace cryptonote
       if(!::do_serialize(ar, field))
         return false;
 
-      std::istringstream iss(field);
-      binary_archive<false> iar(iss);
+      binary_archive<false> iar{epee::strspan<std::uint8_t>(field)};
       serialize_helper helper(*this);
       return ::serialization::serialize(iar, helper);
     }
@@ -192,3 +187,4 @@ VARIANT_TAG(binary_archive, cryptonote::tx_extra_nonce, TX_EXTRA_NONCE);
 VARIANT_TAG(binary_archive, cryptonote::tx_extra_merge_mining_tag, TX_EXTRA_MERGE_MINING_TAG);
 VARIANT_TAG(binary_archive, cryptonote::tx_extra_additional_pub_keys, TX_EXTRA_TAG_ADDITIONAL_PUBKEYS);
 VARIANT_TAG(binary_archive, cryptonote::tx_extra_mysterious_minergate, TX_EXTRA_MYSTERIOUS_MINERGATE_TAG);
+

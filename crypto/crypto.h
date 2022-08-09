@@ -64,6 +64,11 @@ namespace crypto {
     friend class crypto_ops;
   };
 
+  POD_CLASS public_key_memsafe : epee::mlocked<tools::scrubbed<public_key>> {
+    public_key_memsafe() = default;
+    public_key_memsafe(const public_key &original) { memcpy(this->data, original.data, 32); }
+  };
+
   using secret_key = epee::mlocked<tools::scrubbed<ec_scalar>>;
 
   POD_CLASS public_keyV {
@@ -94,15 +99,19 @@ namespace crypto {
     ec_scalar c, r;
     friend class crypto_ops;
   };
+
+  POD_CLASS view_tag {
+    char data;
+  };
 #pragma pack(pop)
 
   void hash_to_scalar(const void *data, size_t length, ec_scalar &res);
   void random32_unbiased(unsigned char *bytes);
 
   static_assert(sizeof(ec_point) == 32 && sizeof(ec_scalar) == 32 &&
-    sizeof(public_key) == 32 && sizeof(secret_key) == 32 &&
+    sizeof(public_key) == 32 && sizeof(public_key_memsafe) == 32 && sizeof(secret_key) == 32 &&
     sizeof(key_derivation) == 32 && sizeof(key_image) == 32 &&
-    sizeof(signature) == 64, "Invalid structure size");
+    sizeof(signature) == 64 && sizeof(view_tag) == 1, "Invalid structure size");
 
   class crypto_ops {
     crypto_ops();
@@ -126,12 +135,22 @@ namespace crypto {
     friend void derive_secret_key(const key_derivation &, std::size_t, const secret_key &, secret_key &);
     static bool derive_subaddress_public_key(const public_key &, const key_derivation &, std::size_t, public_key &);
     friend bool derive_subaddress_public_key(const public_key &, const key_derivation &, std::size_t, public_key &);
+    static void generate_signature(const hash &, const public_key &, const secret_key &, signature &);
+    friend void generate_signature(const hash &, const public_key &, const secret_key &, signature &);
+    static bool check_signature(const hash &, const public_key &, const signature &);
+    friend bool check_signature(const hash &, const public_key &, const signature &);
     static void generate_key_image(const public_key &, const secret_key &, key_image &);
     friend void generate_key_image(const public_key &, const secret_key &, key_image &);
     static void generate_ring_signature(const hash &, const key_image &,
       const public_key *const *, std::size_t, const secret_key &, std::size_t, signature *);
     friend void generate_ring_signature(const hash &, const key_image &,
       const public_key *const *, std::size_t, const secret_key &, std::size_t, signature *);
+    static bool check_ring_signature(const hash &, const key_image &,
+      const public_key *const *, std::size_t, const signature *);
+    friend bool check_ring_signature(const hash &, const key_image &,
+      const public_key *const *, std::size_t, const signature *);
+    static void derive_view_tag(const key_derivation &, std::size_t, view_tag &);
+    friend void derive_view_tag(const key_derivation &, std::size_t, view_tag &);
   };
 
   void generate_random_bytes_thread_safe(size_t N, uint8_t *bytes);
@@ -203,6 +222,15 @@ namespace crypto {
     return crypto_ops::derive_subaddress_public_key(out_key, derivation, output_index, result);
   }
 
+  /* Generation and checking of a standard signature.
+   */
+  inline void generate_signature(const hash &prefix_hash, const public_key &pub, const secret_key &sec, signature &sig) {
+    crypto_ops::generate_signature(prefix_hash, pub, sec, sig);
+  }
+  inline bool check_signature(const hash &prefix_hash, const public_key &pub, const signature &sig) {
+    return crypto_ops::check_signature(prefix_hash, pub, sig);
+  }
+
   /* To send money to a key:
    * * The sender generates an ephemeral key and includes it in transaction output.
    * * To spend the money, the receiver generates a key image from it.
@@ -227,6 +255,19 @@ namespace crypto {
     signature *sig) {
     generate_ring_signature(prefix_hash, image, pubs.data(), pubs.size(), sec, sec_index, sig);
   }
+  inline bool check_ring_signature(const hash &prefix_hash, const key_image &image,
+    const std::vector<const public_key *> &pubs,
+    const signature *sig) {
+    return check_ring_signature(prefix_hash, image, pubs.data(), pubs.size(), sig);
+  }
+
+  /* Derive a 1-byte view tag from the sender-receiver shared secret to reduce scanning time.
+   * When scanning outputs that were not sent to the user, checking the view tag for a match removes the need to proceed with expensive EC operations
+   * for an expected 99.6% of outputs (expected false positive rate = 1/2^8 = 1/256 = 0.4% = 100% - 99.6%).
+   */
+  inline void derive_view_tag(const key_derivation &derivation, std::size_t output_index, view_tag &vt) {
+    crypto_ops::derive_view_tag(derivation, output_index, vt);
+  }
 
   inline std::ostream &operator <<(std::ostream &o, const crypto::public_key &v) {
     epee::to_hex::formatted(o, epee::as_byte_span(v)); return o;
@@ -243,12 +284,20 @@ namespace crypto {
   inline std::ostream &operator <<(std::ostream &o, const crypto::signature &v) {
     epee::to_hex::formatted(o, epee::as_byte_span(v)); return o;
   }
+  inline std::ostream &operator <<(std::ostream &o, const crypto::view_tag &v) {
+    epee::to_hex::formatted(o, epee::as_byte_span(v)); return o;
+  }
 
   const extern crypto::public_key null_pkey;
   const extern crypto::secret_key null_skey;
+
+  inline bool operator<(const public_key &p1, const public_key &p2) { return memcmp(&p1, &p2, sizeof(public_key)) < 0; }
+  inline bool operator>(const public_key &p1, const public_key &p2) { return p2 < p1; }
 }
 
 CRYPTO_MAKE_HASHABLE(public_key)
 CRYPTO_MAKE_HASHABLE_CONSTANT_TIME(secret_key)
+CRYPTO_MAKE_HASHABLE_CONSTANT_TIME(public_key_memsafe)
 CRYPTO_MAKE_HASHABLE(key_image)
 CRYPTO_MAKE_COMPARABLE(signature)
+CRYPTO_MAKE_COMPARABLE(view_tag)

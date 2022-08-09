@@ -275,7 +275,7 @@ rct::key straus(const std::vector<MultiexpData> &data, const std::shared_ptr<str
   MULTIEXP_PERF(PERF_TIMER_START_UNIT(skip, 1000000));
   std::vector<uint8_t> skip(data.size());
   for (size_t i = 0; i < data.size(); ++i)
-    skip[i] = data[i].scalar == rct::zero() || ge_p3_is_point_at_infinity(&data[i].point);
+    skip[i] = data[i].scalar == rct::zero() || ge_p3_is_point_at_infinity_vartime(&data[i].point);
   MULTIEXP_PERF(PERF_TIMER_STOP(skip));
 #endif
 
@@ -300,6 +300,7 @@ rct::key straus(const std::vector<MultiexpData> &data, const std::shared_ptr<str
     memcpy(bytes33,  data[j].scalar.bytes, 32);
     bytes33[32] = 0;
     bytes = bytes33;
+    static constexpr unsigned int mask = (1<<STRAUS_C)-1;
     for (size_t i = 0; i < 256; ++i)
       digits[j*256+i] = ((bytes[i>>3] | (bytes[(i>>3)+1]<<8)) >> (i&7)) & mask;
 #else
@@ -402,7 +403,6 @@ std::shared_ptr<pippenger_cached_data> pippenger_init_cache(const std::vector<Mu
   if (N == 0)
     N = data.size() - start_offset;
   CHECK_AND_ASSERT_THROW_MES(N <= data.size() - start_offset, "Bad cache base data");
-  ge_cached cached;
   std::shared_ptr<pippenger_cached_data> cache(new pippenger_cached_data());
 
   cache->size = N;
