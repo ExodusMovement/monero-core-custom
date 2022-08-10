@@ -125,8 +125,6 @@ namespace cryptonote
   uint64_t get_transaction_weight(const transaction &tx, size_t blob_size);
 
   std::vector<uint64_t> absolute_output_offsets_to_relative(const std::vector<uint64_t>& off);
-  uint64_t round_money_up(uint64_t amount, unsigned significant_digits);
-  std::string round_money_up(const std::string &amount, unsigned significant_digits);
   //---------------------------------------------------------------
   template<class t_object>
   bool t_serializable_object_from_blob(t_object& to, const blobdata& b_blob)
