@@ -159,6 +159,9 @@
 #define HF_VERSION_EXACT_COINBASE               13
 #define HF_VERSION_CLSAG                        13
 #define HF_VERSION_DETERMINISTIC_UNLOCK_TIME    13
+#define HF_VERSION_BULLETPROOF_PLUS             15
+#define HF_VERSION_VIEW_TAGS                    15
+#define HF_VERSION_2021_SCALING                 15
 
 #define PER_KB_FEE_QUANTIZATION_DECIMALS        8
 
@@ -167,6 +170,7 @@
 #define DEFAULT_TXPOOL_MAX_WEIGHT               648000000ull // 3 days at 300000, in bytes
 
 #define BULLETPROOF_MAX_OUTPUTS                 16
+#define BULLETPROOF_PLUS_MAX_OUTPUTS            16
 
 #define CRYPTONOTE_PRUNING_STRIPE_SIZE          4096 // the smaller, the smoother the increase
 #define CRYPTONOTE_PRUNING_LOG_STRIPES          3 // the higher, the more space saved
@@ -197,6 +201,8 @@ namespace config
 
   // Hash domain separators
   const char HASH_KEY_BULLETPROOF_EXPONENT[] = "bulletproof";
+  const char HASH_KEY_BULLETPROOF_PLUS_EXPONENT[] = "bulletproof_plus";
+  const char HASH_KEY_BULLETPROOF_PLUS_TRANSCRIPT[] = "bulletproof_plus_transcript";
   const char HASH_KEY_RINGDB[] = "ringdsb";
   const char HASH_KEY_SUBADDRESS[] = "SubAddr";
   const unsigned char HASH_KEY_ENCRYPTED_PAYMENT_ID = 0x8d;
