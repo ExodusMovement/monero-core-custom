@@ -318,7 +318,6 @@ namespace cryptonote
     END_SERIALIZE()
 
     template<bool W, template <bool> class Archive>
-    template<bool W, template <bool> class Archive>
     bool serialize_base(Archive<W> &ar)
     {
       FIELDS(*static_cast<transaction_prefix *>(this))
@@ -450,20 +449,7 @@ namespace cryptonote
 
     return boost::apply_visitor(txin_signature_size_visitor(), tx_in);
   }
-
-  inline
-  size_t transaction::get_signature_size(const txin_v& tx_in)
-  {
-    struct txin_signature_size_visitor : public boost::static_visitor<size_t>
-    {
-      size_t operator()(const txin_gen& txin) const{return 0;}
-      size_t operator()(const txin_to_script& txin) const{return 0;}
-      size_t operator()(const txin_to_scripthash& txin) const{return 0;}
-      size_t operator()(const txin_to_key& txin) const {return txin.key_offsets.size();}
-    };
-
-    return boost::apply_visitor(txin_signature_size_visitor(), tx_in);
-  }
+  
 
   /************************************************************************/
   /*                                                                      */

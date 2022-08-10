@@ -246,6 +246,11 @@ namespace crypto {
     signature *sig) {
     crypto_ops::generate_ring_signature(prefix_hash, image, pubs, pubs_count, sec, sec_index, sig);
   }
+  inline bool check_ring_signature(const hash &prefix_hash, const key_image &image,
+    const public_key *const *pubs, std::size_t pubs_count,
+    const signature *sig) {
+    return crypto_ops::check_ring_signature(prefix_hash, image, pubs, pubs_count, sig);
+  }
 
   /* Variants with vector<const public_key *> parameters.
    */
