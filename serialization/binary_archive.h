@@ -73,12 +73,6 @@ struct binary_archive_base
   void end_object() { }
   void begin_variant() { }
   void end_variant() { }
-  /* I just want to leave a comment saying how this line really shows
-     flaws in the ownership model of many OOP languages, that is all. */
-  stream_type &stream() { return stream_; } 
-
-protected:
-  stream_type &stream_;
 };
 
 /* \struct binary_archive
