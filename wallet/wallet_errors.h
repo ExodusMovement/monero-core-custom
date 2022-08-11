@@ -448,6 +448,118 @@ namespace tools
     //----------------------------------------------------------------------------------------------------
     typedef failed_rpc_request<transfer_error, get_outs_error_message_index> get_outs_error;
     //----------------------------------------------------------------------------------------------------
+    struct not_enough_unlocked_money : public transfer_error
+    {
+      explicit not_enough_unlocked_money(std::string&& loc, uint64_t available, uint64_t tx_amount, uint64_t fee)
+        : transfer_error(std::move(loc), "not enough unlocked money")
+        , m_available(available)
+        , m_tx_amount(tx_amount)
+      {
+      }
+
+      uint64_t available() const { return m_available; }
+      uint64_t tx_amount() const { return m_tx_amount; }
+
+      std::string to_string() const
+      {
+        std::ostringstream ss;
+        ss << transfer_error::to_string() <<
+          ", available = " << cryptonote::print_money(m_available) <<
+          ", tx_amount = " << cryptonote::print_money(m_tx_amount);
+        return ss.str();
+      }
+
+    private:
+      uint64_t m_available;
+      uint64_t m_tx_amount;
+    };
+    //----------------------------------------------------------------------------------------------------
+    struct not_enough_money : public transfer_error
+    {
+      explicit not_enough_money(std::string&& loc, uint64_t available, uint64_t tx_amount, uint64_t fee)
+        : transfer_error(std::move(loc), "not enough money")
+        , m_available(available)
+        , m_tx_amount(tx_amount)
+      {
+      }
+
+      uint64_t available() const { return m_available; }
+      uint64_t tx_amount() const { return m_tx_amount; }
+
+      std::string to_string() const
+      {
+        std::ostringstream ss;
+        ss << transfer_error::to_string() <<
+          ", available = " << cryptonote::print_money(m_available) <<
+          ", tx_amount = " << cryptonote::print_money(m_tx_amount);
+        return ss.str();
+      }
+
+    private:
+      uint64_t m_available;
+      uint64_t m_tx_amount;
+    };
+    //----------------------------------------------------------------------------------------------------
+    struct tx_not_possible : public transfer_error
+    {
+      explicit tx_not_possible(std::string&& loc, uint64_t available, uint64_t tx_amount, uint64_t fee)
+        : transfer_error(std::move(loc), "tx not possible")
+        , m_available(available)
+        , m_tx_amount(tx_amount)
+        , m_fee(fee)
+      {
+      }
+
+      uint64_t available() const { return m_available; }
+      uint64_t tx_amount() const { return m_tx_amount; }
+      uint64_t fee() const { return m_fee; }
+
+      std::string to_string() const
+      {
+        std::ostringstream ss;
+        ss << transfer_error::to_string() <<
+          ", available = " << cryptonote::print_money(m_available) <<
+          ", tx_amount = " << cryptonote::print_money(m_tx_amount) <<
+          ", fee = " << cryptonote::print_money(m_fee);
+        return ss.str();
+      }
+
+    private:
+      uint64_t m_available;
+      uint64_t m_tx_amount;
+      uint64_t m_fee;
+    };
+    //----------------------------------------------------------------------------------------------------
+    struct not_enough_outs_to_mix : public transfer_error
+    {
+      typedef std::unordered_map<uint64_t, uint64_t> scanty_outs_t;
+
+      explicit not_enough_outs_to_mix(std::string&& loc, const scanty_outs_t& scanty_outs, size_t mixin_count)
+        : transfer_error(std::move(loc), "not enough outputs to use")
+        , m_scanty_outs(scanty_outs)
+        , m_mixin_count(mixin_count)
+      {
+      }
+
+      const scanty_outs_t& scanty_outs() const { return m_scanty_outs; }
+      size_t mixin_count() const { return m_mixin_count; }
+
+      std::string to_string() const
+      {
+        std::ostringstream ss;
+        ss << transfer_error::to_string() << ", ring size = " << (m_mixin_count + 1) << ", scanty_outs:";
+        for (const auto& out: m_scanty_outs)
+        {
+          ss << '\n' << cryptonote::print_money(out.first) << " - " << out.second;
+        }
+        return ss.str();
+      }
+
+    private:
+      scanty_outs_t m_scanty_outs;
+      size_t m_mixin_count;
+    };
+    //----------------------------------------------------------------------------------------------------
     struct tx_rejected : public transfer_error
     {
       explicit tx_rejected(std::string&& loc, const cryptonote::transaction& tx, const std::string& status, const std::string& reason)
@@ -477,9 +589,8 @@ namespace tools
 
     private:
       cryptonote::transaction m_tx;
-      bool m_tx_valid;
-      uint64_t m_tx_weight;
-      uint64_t m_tx_weight_limit;
+      std::string m_status;
+      std::string m_reason;
     };
     //----------------------------------------------------------------------------------------------------
     struct zero_amount: public transfer_error
