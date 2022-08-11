@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2020, The Monero Project
+// Copyright (c) 2014-2022, The Monero Project
 // 
 // All rights reserved.
 // 
@@ -82,7 +82,7 @@ namespace cryptonote
     crypto::public_key key;
   };
 
-   // outputs >= HF_VERSION_VIEW_TAGS
+  // outputs >= HF_VERSION_VIEW_TAGS
   struct txout_to_tagged_key
   {
     txout_to_tagged_key() { }

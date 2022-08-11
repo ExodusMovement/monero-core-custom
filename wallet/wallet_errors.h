@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2020, The Monero Project
+// Copyright (c) 2014-2022, The Monero Project
 // 
 // All rights reserved.
 // 
@@ -82,6 +82,7 @@ namespace tools
     //         tx_rejected
     //         tx_sum_overflow
     //         tx_too_big
+    //         zero_amount
     //         zero_destination
     //       wallet_rpc_error *
     //         daemon_busy
@@ -418,6 +419,24 @@ namespace tools
       std::string to_string() const { return refresh_error::to_string(); }
     };
     //----------------------------------------------------------------------------------------------------
+    struct reorg_depth_error : public refresh_error
+    {
+      explicit reorg_depth_error(std::string&& loc, const std::string& message)
+        : refresh_error(std::move(loc), message)
+      {
+      }
+
+      std::string to_string() const { return refresh_error::to_string(); }
+    };
+    //----------------------------------------------------------------------------------------------------
+    struct signature_check_failed : public wallet_logic_error
+    {
+      explicit signature_check_failed(std::string&& loc, const std::string& message)
+        : wallet_logic_error(std::move(loc), "Signature check failed " + message)
+      {
+      }
+    };
+    //----------------------------------------------------------------------------------------------------
     struct transfer_error : public wallet_logic_error
     {
     protected:
@@ -458,14 +477,23 @@ namespace tools
 
     private:
       cryptonote::transaction m_tx;
-      std::string m_status;
-      std::string m_reason;
+      bool m_tx_valid;
+      uint64_t m_tx_weight;
+      uint64_t m_tx_weight_limit;
+    };
+    //----------------------------------------------------------------------------------------------------
+    struct zero_amount: public transfer_error
+    {
+      explicit zero_amount(std::string&& loc)
+        : transfer_error(std::move(loc), "destination amount is zero")
+      {
+      }
     };
     //----------------------------------------------------------------------------------------------------
     struct zero_destination : public transfer_error
     {
       explicit zero_destination(std::string&& loc)
-        : transfer_error(std::move(loc), "destination amount is zero")
+        : transfer_error(std::move(loc), "transaction has no destination")
       {
       }
     };
@@ -501,6 +529,20 @@ namespace tools
       }
       const std::string& status() const { return m_status; }
     private:
+      const std::string m_status;
+    };
+    //----------------------------------------------------------------------------------------------------
+    struct wallet_coded_rpc_error : public wallet_rpc_error
+    {
+      explicit wallet_coded_rpc_error(std::string&& loc, const std::string& request, int code, const std::string& status)
+        : wallet_rpc_error(std::move(loc), std::string("error ") + std::to_string(code) + (" in ") + request + " RPC: " + status, request),
+        m_code(code), m_status(status)
+      {
+      }
+      int code() const { return m_code; }
+      const std::string& status() const { return m_status; }
+    private:
+      int m_code;
       const std::string m_status;
     };
     //----------------------------------------------------------------------------------------------------
@@ -540,6 +582,14 @@ namespace tools
     {
       explicit get_output_distribution(std::string&& loc, const std::string& request)
         : wallet_rpc_error(std::move(loc), "failed to get output distribution", request)
+      {
+      }
+    };
+    //----------------------------------------------------------------------------------------------------
+    struct payment_required: public wallet_rpc_error
+    {
+      explicit payment_required(std::string&& loc, const std::string& request)
+        : wallet_rpc_error(std::move(loc), "payment required", request)
       {
       }
     };
