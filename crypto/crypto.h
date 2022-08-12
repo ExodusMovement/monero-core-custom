@@ -248,20 +248,6 @@ namespace crypto {
     return crypto_ops::check_signature(prefix_hash, pub, sig);
   }
 
-  /* Generation and checking of a tx proof; given a tx pubkey R, the recipient's view pubkey A, and the key 
-   * derivation D, the signature proves the knowledge of the tx secret key r such that R=r*G and D=r*A
-   * When the recipient's address is a subaddress, the tx pubkey R is defined as R=r*B where B is the recipient's spend pubkey
-   */
-  inline void generate_tx_proof(const hash &prefix_hash, const public_key &R, const public_key &A, const boost::optional<public_key> &B, const public_key &D, const secret_key &r, signature &sig) {
-    crypto_ops::generate_tx_proof(prefix_hash, R, A, B, D, r, sig);
-  }
-  inline void generate_tx_proof_v1(const hash &prefix_hash, const public_key &R, const public_key &A, const boost::optional<public_key> &B, const public_key &D, const secret_key &r, signature &sig) {
-    crypto_ops::generate_tx_proof_v1(prefix_hash, R, A, B, D, r, sig);
-  }
-  inline bool check_tx_proof(const hash &prefix_hash, const public_key &R, const public_key &A, const boost::optional<public_key> &B, const public_key &D, const signature &sig, const int version) {
-    return crypto_ops::check_tx_proof(prefix_hash, R, A, B, D, sig, version);
-  }
-
   /* To send money to a key:
    * * The sender generates an ephemeral key and includes it in transaction output.
    * * To spend the money, the receiver generates a key image from it.
