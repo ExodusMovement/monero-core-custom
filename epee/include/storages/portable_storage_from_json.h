@@ -26,8 +26,10 @@
 
 #pragma once
 #include <boost/lexical_cast.hpp>
+#include <boost/utility/string_ref.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include "parserse_base_utils.h"
+#include "file_io_utils.h"
 
 #define EPEE_JSON_RECURSION_LIMIT_INTERNAL 100
 
@@ -49,7 +51,6 @@ namespace epee
       {
         CHECK_AND_ASSERT_THROW_MES(recursion < EPEE_JSON_RECURSION_LIMIT_INTERNAL, "Wrong JSON data: recursion limitation (" << EPEE_JSON_RECURSION_LIMIT_INTERNAL << ") exceeded");
 
-        std::string::const_iterator sub_element_start;
         std::string name;        
         typename t_storage::harray h_array = nullptr;
         enum match_state

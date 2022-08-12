@@ -36,8 +36,8 @@
 #include <cassert>
 #include <iostream>
 #include <iterator>
-#include <boost/type_traits/make_unsigned.hpp>
 #include <boost/endian/conversion.hpp>
+#include <boost/type_traits/make_unsigned.hpp>
 
 #include "common/varint.h"
 #include "span.h"

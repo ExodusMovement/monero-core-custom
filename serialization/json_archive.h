@@ -98,7 +98,6 @@ protected:
     }
   }
 
-
 protected:
   stream_type &stream_;
   bool indent_;
