@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2020, The Monero Project
+// Copyright (c) 2014-2022, The Monero Project
 // 
 // All rights reserved.
 // 
@@ -44,6 +44,13 @@
 #include "hash.h"
 
 namespace crypto {
+  extern "C" {
+#endif
+    void chacha8(const void* data, size_t length, const uint8_t* key, const uint8_t* iv, char* cipher);
+    void chacha20(const void* data, size_t length, const uint8_t* key, const uint8_t* iv, char* cipher);
+#if defined(__cplusplus)
+  }
+
   using chacha_key = epee::mlocked<tools::scrubbed_arr<uint8_t, CHACHA_KEY_SIZE>>;
 
 #pragma pack(push, 1)
@@ -54,6 +61,14 @@ namespace crypto {
 #pragma pack(pop)
 
   static_assert(sizeof(chacha_key) == CHACHA_KEY_SIZE && sizeof(chacha_iv) == CHACHA_IV_SIZE, "Invalid structure size");
+
+  inline void chacha8(const void* data, std::size_t length, const chacha_key& key, const chacha_iv& iv, char* cipher) {
+    chacha8(data, length, key.data(), reinterpret_cast<const uint8_t*>(&iv), cipher);
+  }
+
+  inline void chacha20(const void* data, std::size_t length, const chacha_key& key, const chacha_iv& iv, char* cipher) {
+    chacha20(data, length, key.data(), reinterpret_cast<const uint8_t*>(&iv), cipher);
+  }
 }
 
 #endif
