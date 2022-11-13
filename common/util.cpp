@@ -28,28 +28,23 @@
 // 
 // Parts of this file are originally copyright (c) 2012-2013 The Cryptonote developers
 
-#pragma once 
-
-#include <boost/thread/locks.hpp>
-#include <boost/thread/mutex.hpp>
-#include <boost/optional.hpp>
-#include <system_error>
-#include <csignal>
 #include <cstdio>
-#include <functional>
-#include <memory>
-#include <string>
 
-#ifdef _WIN32
-#include "windows.h"
-#include "misc_log_ex.h"
-#endif
 
-#include "crypto/hash.h"
-#include "cryptonote_config.h"
+#include "include_base_utils.h"
+
+#include "util.h"
+
 
 namespace tools
 {
-    void set_max_concurrency(unsigned n);
-  unsigned get_max_concurrency();
+
+  void set_max_concurrency(unsigned n)
+  {
+  }
+
+  unsigned get_max_concurrency()
+  {
+    return 1;
+  }
 }
