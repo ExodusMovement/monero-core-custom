@@ -14,6 +14,7 @@
         "array": "cpp",
         "deque": "cpp",
         "initializer_list": "cpp",
-        "list": "cpp"
+        "list": "cpp",
+        "ostream": "cpp"
     }
 }
